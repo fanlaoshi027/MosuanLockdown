@@ -1,0 +1,26 @@
+name: Build Windows Preview
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Publish Windows x64
+        run: dotnet publish src/MosuanLockdown/MosuanLockdown.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true -o dist
+      - name: Upload executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: MosuanLockdown-v0.1-win-x64
+          path: dist/
+          if-no-files-found: error
+          retention-days: 30
