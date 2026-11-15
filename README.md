@@ -31,3 +31,7 @@ dotnet build src/MosuanLockdown/MosuanLockdown.csproj
 ## v0.3 部署前诊断
 
 新增只读安全检查按钮，检查 Windows 11 版本、账户选择、EXE 是否位于 Program Files 等。路径检查不是 ACL 检查；**不得依据此报告启用系统锁定**。本版本仍不会部署策略。
+
+## v0.4 安全诊断
+
+新增其他已启用管理员账户枚举，以及对 EXE 与父目录的常见普通用户组写入权限的保守 ACL 扫描。此检查**不是 Windows 有效权限的完整计算**，也无法证明管理员账户可实际登录。系统策略仍不会被修改。

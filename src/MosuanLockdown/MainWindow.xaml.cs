@@ -7,6 +7,8 @@ using System.Xml.Linq;
 using Microsoft.Win32;
 using System.DirectoryServices.AccountManagement;
 using System.Collections.Generic;
+using System.Security.AccessControl;
+using System.Text;
 
 namespace MosuanLockdown;
 
@@ -48,29 +50,88 @@ public partial class MainWindow : Window
         if (dialog.ShowDialog(this) == true) ExePath.Text = dialog.FileName;
     }
 
+
     private void Diagnose_Click(object sender, RoutedEventArgs e)
     {
         var notes = new List<string>();
-        if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 22621))
-            notes.Add("✓ Windows 11 22H2+：允许生成候选 XML（不代表可部署）。");
-        else notes.Add("✗ 当前系统不支持此版本的 XML 生成。");
+        bool supported = OperatingSystem.IsWindowsVersionAtLeast(10, 0, 22621);
+        notes.Add(supported ? "✓ Windows 11 22H2+：可生成候选配置。" : "✗ 仅支持 Windows 11 22H2+ 候选配置。");
         if (StudentAccounts.SelectedItem is AccountOption account)
             notes.Add($"✓ 已选择学生标准账户：{account.Name}。");
-        else notes.Add("✗ 未选择已确认的学生标准账户。");
+        else notes.Add("✗ 尚未选择已确认的学生标准账户。");
+
+        try
+        {
+            using var context = new PrincipalContext(ContextType.Machine);
+            using var template = new UserPrincipal(context);
+            using var searcher = new PrincipalSearcher(template);
+            int otherAdmins = 0;
+            foreach (var user in searcher.FindAll().OfType<UserPrincipal>())
+            {
+                try
+                {
+                    if (user.Enabled != true || user.Sid is null) continue;
+                    if (user.Sid.Value == WindowsIdentity.GetCurrent().User?.Value) continue;
+                    if (user.GetAuthorizationGroups().Any(g => g.Sid?.Value == "S-1-5-32-544")) otherAdmins++;
+                }
+                catch { notes.Add("⚠ 部分账户无法确认管理员权限。"); }
+            }
+            notes.Add(otherAdmins > 0
+                ? $"△ 找到 {otherAdmins} 个其他已启用管理员账户；尚未验证其密码和登录能力。"
+                : "✗ 未找到其他可确认的已启用管理员账户；禁止部署。");
+        }
+        catch (Exception ex) { notes.Add("✗ 管理员恢复账户检查失败：" + ex.Message); }
+
         if (File.Exists(ExePath.Text) && ExePath.Text.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
         {
             var path = Path.GetFullPath(ExePath.Text);
-            var pf = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
-            var pf86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
-            bool installed = IsWithin(path, pf) || IsWithin(path, pf86);
-            notes.Add(installed
-                ? "△ EXE 位于 Program Files 下；仍需检查实际文件夹 ACL。"
-                : "⚠ EXE 不在 Program Files 下，可能位于学生可写目录，不能安全部署。");
+            if (path.StartsWith(@"\\", StringComparison.Ordinal))
+                notes.Add("✗ 不允许从网络共享运行受控 EXE。");
+            else
+            {
+                var pf = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+                var pf86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
+                bool installed = IsWithin(path, pf) || IsWithin(path, pf86);
+                notes.Add(installed ? "✓ EXE 位于 Program Files 目录树。" : "⚠ EXE 不在 Program Files 下。");
+                notes.Add(CheckAcl(path));
+            }
         }
         else notes.Add("✗ 尚未选择有效 EXE。");
-        notes.Add("⚠ 尚未验证独立管理员恢复账户、文件 ACL、策略冲突及实际退出行为。");
-        notes.Add("安全结论：仅允许导出供检查的 XML；禁止部署。");
+        notes.Add("⚠ 未验证策略冲突、实际学生登录、系统回滚和 Assigned Access 完整 XSD。");
+        notes.Add("结论：本版本仍不允许部署；仅供诊断和 XML 导出。");
         Status.Text = string.Join(Environment.NewLine, notes);
+    }
+
+    private static string CheckAcl(string executable)
+    {
+        try
+        {
+            // Conservative audit: check both the file and its containing directory.
+            // An allow ACE alone is not an effective-access calculation; never report as fully secure.
+            const FileSystemRights writes = FileSystemRights.Write | FileSystemRights.Modify |
+                FileSystemRights.Delete | FileSystemRights.ChangePermissions | FileSystemRights.TakeOwnership;
+            var risky = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "S-1-1-0", // Everyone
+                "S-1-5-11", // Authenticated Users
+                "S-1-5-32-545" // Builtin Users
+            };
+            foreach (var target in new[] { executable, Path.GetDirectoryName(executable)! })
+            {
+                FileSystemSecurity security = Directory.Exists(target)
+                    ? new DirectoryInfo(target).GetAccessControl()
+                    : new FileInfo(target).GetAccessControl();
+                foreach (FileSystemAccessRule rule in security.GetAccessRules(true, true, typeof(SecurityIdentifier)))
+                {
+                    if (rule.AccessControlType != AccessControlType.Allow) continue;
+                    if ((rule.FileSystemRights & writes) == 0) continue;
+                    if (rule.IdentityReference is SecurityIdentifier sid && risky.Contains(sid.Value))
+                        return "⚠ ACL 检测到普通用户组的写入类 Allow 权限；必须人工复核有效权限。";
+                }
+            }
+            return "△ 未发现常见普通用户组的直接写入类 Allow 权限；未覆盖个人 SID、嵌套组、拒绝规则及完整有效权限。";
+        }
+        catch (Exception ex) { return "✗ 无法读取文件 ACL：" + ex.Message; }
     }
 
     private static bool IsWithin(string file, string directory)
