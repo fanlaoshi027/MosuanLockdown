@@ -53,6 +53,29 @@ public partial class MainWindow : Window
     }
 
 
+
+    private string RecoveryChecklist()
+    {
+        var items = new (System.Windows.Controls.CheckBox Box, string Label)[]
+        {
+            (RecoveryAdmin, "备用管理员登录"),
+            (RecoveryBackup, "系统备份及恢复介质"),
+            (RecoveryBitLocker, "BitLocker 恢复准备"),
+            (RecoveryPolicies, "现有策略记录")
+        };
+        int count = items.Count(item => item.Box.IsChecked == true);
+        var details = string.Join(Environment.NewLine,
+            items.Select(item => (item.Box.IsChecked == true ? "[人工确认] " : "[未确认] ") + item.Label));
+        return $"恢复准备人工核对：{count}/{items.Length} 项。"
+            + Environment.NewLine + details
+            + Environment.NewLine + "注意：勾选不等于验证成功，本版本禁止部署。";
+    }
+
+    private void CheckRecovery_Click(object sender, RoutedEventArgs e)
+    {
+        Status.Text = RecoveryChecklist();
+    }
+
     private void Diagnose_Click(object sender, RoutedEventArgs e)
     {
         var notes = new List<string>();
@@ -99,6 +122,7 @@ public partial class MainWindow : Window
             }
         }
         else notes.Add("✗ 尚未选择有效 EXE。");
+        notes.Add(RecoveryChecklist());
         notes.Add("⚠ 未验证策略冲突、实际学生登录、系统回滚和 Assigned Access 完整 XSD。");
         notes.Add("结论：本版本仍不允许部署；仅供诊断和 XML 导出。");
         Status.Text = string.Join(Environment.NewLine, notes);
@@ -177,7 +201,8 @@ public partial class MainWindow : Window
         report.AppendLine();
         report.AppendLine(Status.Text);
         report.AppendLine();
-        report.AppendLine("恢复准备（必须人工确认）：");
+        report.AppendLine("恢复准备（以下勾选状态仅为人工声明）：");
+        report.AppendLine(RecoveryChecklist());
         report.AppendLine("[ ] 已在真实登录界面验证备用管理员账号及密码");
         report.AppendLine("[ ] 已准备 BitLocker 恢复密钥（如启用）");
         report.AppendLine("[ ] 已创建系统还原或完整备份并确认可用");
