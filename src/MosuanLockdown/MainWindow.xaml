@@ -1,6 +1,6 @@
-<Window x:Class="MosuanLockdown.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="墨算终端管家 · 安全预览版" Height="650" Width="920" MinHeight="580" MinWidth="760" WindowStartupLocation="CenterScreen" Background="#F4F6FA" FontFamily="Microsoft YaHei UI">
+<Window x:Class="MosuanLockdown.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="墨算终端管家 · 安全预览版" Height="720" Width="920" MinHeight="640" MinWidth="760" WindowStartupLocation="CenterScreen" Background="#F4F6FA" FontFamily="Microsoft YaHei UI">
 <Grid Margin="32"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="18"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-<StackPanel><TextBlock Text="墨算终端管家" FontSize="29" FontWeight="Bold" Foreground="#192B44"/><TextBlock Text="学生电脑管理 · v0.2 配置生成测试版" Margin="0,6,0,0" FontSize="14" Foreground="#65758B"/></StackPanel>
+<StackPanel><TextBlock Text="墨算终端管家" FontSize="29" FontWeight="Bold" Foreground="#192B44"/><TextBlock Text="学生电脑管理 · v0.3 部署前诊断版" Margin="0,6,0,0" FontSize="14" Foreground="#65758B"/></StackPanel>
 <Border Grid.Row="2" Background="White" CornerRadius="18" Padding="28"><StackPanel>
 <TextBlock Text="第一步 · 检查当前电脑" FontSize="21" FontWeight="SemiBold"/>
 <TextBlock x:Name="SystemInfo" Text="正在检测…" Margin="0,12,0,22" Foreground="#45556B" TextWrapping="Wrap"/>
@@ -10,8 +10,9 @@
 <TextBlock Text="第三步 · 选择允许的软件" Margin="0,24,0,0" FontSize="21" FontWeight="SemiBold"/>
 <DockPanel Margin="0,12,0,0"><Button DockPanel.Dock="Right" Content="选择 EXE" Padding="16,8" Click="ChooseExe_Click"/><TextBox x:Name="ExePath" IsReadOnly="True" VerticalContentAlignment="Center" Margin="0,0,12,0" Padding="8" Text="尚未选择"/></DockPanel>
 <TextBlock Text="当前仅支持 Windows 11 22H2+ 生成候选配置；不会修改系统策略。" Margin="0,25,0,0" Foreground="#986315" FontWeight="SemiBold"/>
+<Button Content="运行部署前安全检查" Margin="0,14,0,0" Height="38" HorizontalAlignment="Left" Padding="22,0" Click="Diagnose_Click"/>
 <Button Content="导出 Windows 11 配置 XML" Margin="0,14,0,0" Height="44" HorizontalAlignment="Left" Padding="22,0" Click="Export_Click"/>
-<TextBlock x:Name="Status" Margin="0,15,0,0" TextWrapping="Wrap" Foreground="#45556B"/>
+<ScrollViewer Margin="0,12,0,0" MaxHeight="130" VerticalScrollBarVisibility="Auto"><TextBlock x:Name="Status" TextWrapping="Wrap" Foreground="#45556B"/></ScrollViewer>
 </StackPanel></Border>
 <TextBlock Grid.Row="3" Margin="0,15,0,0" Foreground="#65758B" Text="安全提示：本版本不启用限制，不修改账户，不部署 Assigned Access。"/>
 </Grid></Window>

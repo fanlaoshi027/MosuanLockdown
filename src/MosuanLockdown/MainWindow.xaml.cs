@@ -6,6 +6,7 @@ using System.Windows;
 using System.Xml.Linq;
 using Microsoft.Win32;
 using System.DirectoryServices.AccountManagement;
+using System.Collections.Generic;
 
 namespace MosuanLockdown;
 
@@ -46,6 +47,39 @@ public partial class MainWindow : Window
         var dialog = new OpenFileDialog { Filter = "Windows 程序 (*.exe)|*.exe", Title = "选择允许学生运行的软件" };
         if (dialog.ShowDialog(this) == true) ExePath.Text = dialog.FileName;
     }
+
+    private void Diagnose_Click(object sender, RoutedEventArgs e)
+    {
+        var notes = new List<string>();
+        if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 22621))
+            notes.Add("✓ Windows 11 22H2+：允许生成候选 XML（不代表可部署）。");
+        else notes.Add("✗ 当前系统不支持此版本的 XML 生成。");
+        if (StudentAccounts.SelectedItem is AccountOption account)
+            notes.Add($"✓ 已选择学生标准账户：{account.Name}。");
+        else notes.Add("✗ 未选择已确认的学生标准账户。");
+        if (File.Exists(ExePath.Text) && ExePath.Text.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
+        {
+            var path = Path.GetFullPath(ExePath.Text);
+            var pf = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+            var pf86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
+            bool installed = IsWithin(path, pf) || IsWithin(path, pf86);
+            notes.Add(installed
+                ? "△ EXE 位于 Program Files 下；仍需检查实际文件夹 ACL。"
+                : "⚠ EXE 不在 Program Files 下，可能位于学生可写目录，不能安全部署。");
+        }
+        else notes.Add("✗ 尚未选择有效 EXE。");
+        notes.Add("⚠ 尚未验证独立管理员恢复账户、文件 ACL、策略冲突及实际退出行为。");
+        notes.Add("安全结论：仅允许导出供检查的 XML；禁止部署。");
+        Status.Text = string.Join(Environment.NewLine, notes);
+    }
+
+    private static bool IsWithin(string file, string directory)
+    {
+        if (string.IsNullOrWhiteSpace(directory)) return false;
+        var prefix = Path.GetFullPath(directory).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+        return file.StartsWith(prefix, StringComparison.OrdinalIgnoreCase);
+    }
+
     private void Export_Click(object sender, RoutedEventArgs e)
     {
         if (StudentAccounts.SelectedItem is not AccountOption account) { MessageBox.Show(this, "请先选择学生账号。"); return; }

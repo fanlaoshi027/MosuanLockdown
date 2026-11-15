@@ -27,3 +27,7 @@ dotnet build src/MosuanLockdown/MosuanLockdown.csproj
 ```
 
 后续版本将实现正式 Assigned Access XML、严格兼容性检测、部署与恢复；这些功能目前尚未提供。
+
+## v0.3 部署前诊断
+
+新增只读安全检查按钮，检查 Windows 11 版本、账户选择、EXE 是否位于 Program Files 等。路径检查不是 ACL 检查；**不得依据此报告启用系统锁定**。本版本仍不会部署策略。
