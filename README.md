@@ -14,7 +14,7 @@ Windows 10/11 Pro 学生电脑管理工具（开发中）。
 
 ## 下载测试
 
-进入 [Actions](../../actions/workflows/build-windows.yml)，选择最近一次成功的运行，在 Artifacts 下载 `MosuanLockdown-v0.9-win-x64`。解压后运行 EXE。
+进入 [Actions](../../actions/workflows/build-windows.yml)，选择最近一次成功的运行，在 Artifacts 下载 `MosuanLockdown-v0.10-win-x64`。解压后运行 EXE。
 
 软件尚未签名，Windows 可能显示未知发布者警告。仅从本仓库的 Actions 下载，并在测试电脑运行。
 
@@ -55,3 +55,7 @@ dotnet build src/MosuanLockdown/MosuanLockdown.csproj
 ## v0.9 上级目录 ACL 诊断
 
 只读扫描播放器 EXE 和从其所在文件夹到磁盘根目录的 ACL，发现常见普通用户组写入 Allow 权限或父目录重解析点时提示人工复核。该扫描不是有效权限计算，不能保证应用不可替换。仍无部署功能。
+
+## v0.10 XML 回归测试
+
+GitHub Actions 先运行独立无外部测试框架的 XML 回归测试，再发布 EXE。覆盖有效预览、SID 账户、配置关联错误、缺少自动启动、非法 StartPins、额外 App、网络 EXE 路径等。测试通过只代表本地结构规则符合预期，**不是微软官方 XSD 验证或实际部署测试**。
