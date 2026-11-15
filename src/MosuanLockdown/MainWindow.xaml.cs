@@ -9,6 +9,7 @@ using System.DirectoryServices.AccountManagement;
 using System.Collections.Generic;
 using System.Security.AccessControl;
 using System.Text;
+using System.Security.Cryptography;
 
 namespace MosuanLockdown;
 
@@ -139,6 +140,47 @@ public partial class MainWindow : Window
         if (string.IsNullOrWhiteSpace(directory)) return false;
         var prefix = Path.GetFullPath(directory).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
         return file.StartsWith(prefix, StringComparison.OrdinalIgnoreCase);
+    }
+
+
+    private void ExportReport_Click(object sender, RoutedEventArgs e)
+    {
+        Diagnose_Click(sender, e);
+        var report = new StringBuilder();
+        report.AppendLine("墨算终端管家 v0.5 · 部署前只读检查报告");
+        report.AppendLine("生成时间：" + DateTimeOffset.Now.ToString("yyyy-MM-dd HH:mm:ss zzz"));
+        report.AppendLine("机器名称：" + Environment.MachineName);
+        report.AppendLine("操作系统：" + Environment.OSVersion.VersionString);
+        report.AppendLine("学生账户：" + (StudentAccounts.SelectedItem is AccountOption a ? a.Name : "未选择"));
+        report.AppendLine("播放器路径：" + (File.Exists(ExePath.Text) ? ExePath.Text : "未选择"));
+        if (File.Exists(ExePath.Text))
+        {
+            try
+            {
+                using var stream = File.OpenRead(ExePath.Text);
+                report.AppendLine("播放器 SHA-256：" + Convert.ToHexString(SHA256.HashData(stream)));
+            }
+            catch (Exception ex) { report.AppendLine("播放器哈希计算失败：" + ex.Message); }
+        }
+        report.AppendLine();
+        report.AppendLine(Status.Text);
+        report.AppendLine();
+        report.AppendLine("恢复准备（必须人工确认）：");
+        report.AppendLine("[ ] 已在真实登录界面验证备用管理员账号及密码");
+        report.AppendLine("[ ] 已准备 BitLocker 恢复密钥（如启用）");
+        report.AppendLine("[ ] 已创建系统还原或完整备份并确认可用");
+        report.AppendLine("[ ] 已记录当前 Assigned Access / MDM / GPO 策略");
+        report.AppendLine("[ ] 已在非生产测试机验证部署、退出、重启与恢复");
+        report.AppendLine();
+        report.AppendLine("警告：此报告不证明可安全部署；本版本不提供部署功能。");
+        var dialog = new SaveFileDialog { FileName = "MosuanLockdown-safety-report.txt", Filter = "文本报告|*.txt" };
+        if (dialog.ShowDialog(this) != true) return;
+        try
+        {
+            File.WriteAllText(dialog.FileName, report.ToString(), new UTF8Encoding(true));
+            Status.Text = "只读安全检查报告已保存。报告中包含设备与账号信息，请勿公开上传。";
+        }
+        catch (Exception ex) { MessageBox.Show(this, ex.Message, "保存失败"); }
     }
 
     private void Export_Click(object sender, RoutedEventArgs e)
