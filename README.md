@@ -14,7 +14,7 @@ Windows 10/11 Pro 学生电脑管理工具（开发中）。
 
 ## 下载测试
 
-进入 [Actions](../../actions/workflows/build-windows.yml)，选择最近一次成功的运行，在 Artifacts 下载 `MosuanLockdown-v0.8-win-x64`。解压后运行 EXE。
+进入 [Actions](../../actions/workflows/build-windows.yml)，选择最近一次成功的运行，在 Artifacts 下载 `MosuanLockdown-v0.9-win-x64`。解压后运行 EXE。
 
 软件尚未签名，Windows 可能显示未知发布者警告。仅从本仓库的 Actions 下载，并在测试电脑运行。
 
@@ -51,3 +51,7 @@ dotnet build src/MosuanLockdown/MosuanLockdown.csproj
 ## v0.8 XML 安全读取
 
 读取外部 XML 时禁止 DTD 和外部实体解析，限制文档大小为 1 MiB，并拒绝预览配置中的部分额外节点和属性。仍不是官方 XSD 校验，不能直接部署。
+
+## v0.9 上级目录 ACL 诊断
+
+只读扫描播放器 EXE 和从其所在文件夹到磁盘根目录的 ACL，发现常见普通用户组写入 Allow 权限或父目录重解析点时提示人工复核。该扫描不是有效权限计算，不能保证应用不可替换。仍无部署功能。

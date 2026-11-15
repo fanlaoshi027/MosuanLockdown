@@ -108,17 +108,27 @@ public partial class MainWindow : Window
     {
         try
         {
-            // Conservative audit: check both the file and its containing directory.
-            // An allow ACE alone is not an effective-access calculation; never report as fully secure.
+            // Conservative scan of the EXE and every ancestor directory to the volume root.
+            // This is not an effective-access evaluation; individual SIDs and nested groups remain unverified.
             const FileSystemRights writes = FileSystemRights.Write | FileSystemRights.Modify |
-                FileSystemRights.Delete | FileSystemRights.ChangePermissions | FileSystemRights.TakeOwnership;
+                FileSystemRights.Delete | FileSystemRights.ChangePermissions | FileSystemRights.TakeOwnership |
+                FileSystemRights.CreateFiles | FileSystemRights.CreateDirectories | FileSystemRights.DeleteSubdirectoriesAndFiles;
             var risky = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
             {
-                "S-1-1-0", // Everyone
-                "S-1-5-11", // Authenticated Users
-                "S-1-5-32-545" // Builtin Users
+                "S-1-1-0", "S-1-5-11", "S-1-5-32-545"
             };
-            foreach (var target in new[] { executable, Path.GetDirectoryName(executable)! })
+            var targets = new List<string> { executable };
+            var directory = new DirectoryInfo(Path.GetDirectoryName(executable)!);
+            int levels = 0;
+            while (directory is not null)
+            {
+                if (++levels > 64) return "✗ 目录层级异常，无法完成 ACL 检查。";
+                targets.Add(directory.FullName);
+                if ((directory.Attributes & FileAttributes.ReparsePoint) != 0)
+                    return "⚠ 发现目录重解析点，可能存在符号链接或联接，需人工确认实际路径。";
+                directory = directory.Parent;
+            }
+            foreach (var target in targets)
             {
                 FileSystemSecurity security = Directory.Exists(target)
                     ? new DirectoryInfo(target).GetAccessControl()
@@ -128,10 +138,11 @@ public partial class MainWindow : Window
                     if (rule.AccessControlType != AccessControlType.Allow) continue;
                     if ((rule.FileSystemRights & writes) == 0) continue;
                     if (rule.IdentityReference is SecurityIdentifier sid && risky.Contains(sid.Value))
-                        return "⚠ ACL 检测到普通用户组的写入类 Allow 权限；必须人工复核有效权限。";
+                        return "⚠ 路径 " + target + " 存在常见普通用户组写入类 Allow 权限，需人工复核。";
                 }
             }
-            return "△ 未发现常见普通用户组的直接写入类 Allow 权限；未覆盖个人 SID、嵌套组、拒绝规则及完整有效权限。";
+            return "△ 已扫描 EXE 和 " + (targets.Count - 1) +
+                " 级父目录，未发现常见普通用户组写入类 Allow；仍未验证个人 SID、嵌套组、重解析点文件或有效权限。";
         }
         catch (Exception ex) { return "✗ 无法读取文件 ACL：" + ex.Message; }
     }
@@ -148,7 +159,7 @@ public partial class MainWindow : Window
     {
         Diagnose_Click(sender, e);
         var report = new StringBuilder();
-        report.AppendLine("墨算终端管家 v0.8 · 部署前只读检查报告");
+        report.AppendLine("墨算终端管家 v0.9 · 部署前只读检查报告");
         report.AppendLine("生成时间：" + DateTimeOffset.Now.ToString("yyyy-MM-dd HH:mm:ss zzz"));
         report.AppendLine("机器名称：" + Environment.MachineName);
         report.AppendLine("操作系统：" + Environment.OSVersion.VersionString);
