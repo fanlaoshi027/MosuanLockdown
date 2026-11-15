@@ -24,6 +24,12 @@ static class Program
         Reject("additional app", x => x.Descendants(B + "AllowedApps").Single().Add(new XElement(B + "App", new XAttribute("DesktopAppPath", @"C:\Windows\system32\cmd.exe"))));
         Reject("UNC executable", x => x.Descendants(B + "App").Single().SetAttributeValue("DesktopAppPath", @"\\server\share\player.exe"));
         Reject("unexpected profile node", x => x.Descendants(B + "Profile").Single().Add(new XElement(B + "Unknown")));
+        Reject("unknown root child", x => x.Root!.Add(new XElement(B + "Unknown")));
+        Reject("extra profile", x => x.Descendants(B + "Profiles").Single().Add(new XElement(B + "Unknown")));
+        Reject("extra configs", x => x.Descendants(B + "Configs").Single().Add(new XElement(B + "Unknown")));
+        Reject("extra allowed-apps node", x => x.Descendants(B + "AllowedApps").Single().Add(new XElement(B + "Unknown")));
+        Reject("extra config node", x => x.Descendants(B + "Config").Single().Add(new XElement(B + "Unknown")));
+        Reject("extra taskbar attribute", x => x.Descendants(B + "Taskbar").Single().SetAttributeValue("Unexpected", "true"));
         Reject("DTD", x => x.AddFirst(new XDocumentType("AssignedAccessConfiguration", null, null, null)));
         Console.WriteLine($"PASS: {passed} XML regression cases");
     }

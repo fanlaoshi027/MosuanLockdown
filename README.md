@@ -14,7 +14,7 @@ Windows 10/11 Pro 学生电脑管理工具（开发中）。
 
 ## 下载测试
 
-进入 [Actions](../../actions/workflows/build-windows.yml)，选择最近一次成功的运行，在 Artifacts 下载 `MosuanLockdown-v0.11-win-x64`。解压后运行 EXE。
+进入 [Actions](../../actions/workflows/build-windows.yml)，选择最近一次成功的运行，在 Artifacts 下载 `MosuanLockdown-v0.12-win-x64`。解压后运行 EXE。
 
 软件尚未签名，Windows 可能显示未知发布者警告。仅从本仓库的 Actions 下载，并在测试电脑运行。
 
@@ -63,3 +63,7 @@ GitHub Actions 先运行独立无外部测试框架的 XML 回归测试，再发
 ## v0.11 恢复准备人工核对
 
 界面新增备用管理员、系统备份、BitLocker 和现有策略四项人工确认，检查结果写入诊断和 TXT 报告。**软件不验证这些声明的真实性，全部勾选也不代表允许部署。** 微软指出移除 Assigned Access 配置后仍可能保留部分设置，因此恢复计划不能只依赖清除配置。
+
+## v0.12 XML 配置边界校验
+
+对照 [微软官方 Assigned Access XSD](https://learn.microsoft.com/en-us/windows/configuration/assigned-access/xsd) 的结构说明，进一步拒绝预览配置中不支持的根节点、Profiles/Configs 子节点、应用列表额外节点、Config 额外节点及 Taskbar 额外属性，并增加 6 个负例回归测试（共 18 项）。**仍未集成官方完整 XSD 验证，测试通过不代表 Windows 接受配置。**
