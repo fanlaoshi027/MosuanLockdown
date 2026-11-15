@@ -13,12 +13,20 @@ internal static class AssignedAccessConfig
     private static readonly XNamespace V5 = "http://schemas.microsoft.com/AssignedAccess/2022/config";
     private static readonly Guid ProfileId = Guid.Parse("9c6b470d-63d2-43e0-9f76-60f0f130a827");
 
-    public static XDocument GenerateWindows11(string sid, string executable)
+    private static bool IsValidLocalUserName(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name) || name.Length > 20 || name.EndsWith(".", StringComparison.Ordinal))
+            return false;
+        if (name == "." || name == "..") return false;
+        return !name.Any(c => char.IsControl(c) || "\\\\/\"[]:;|=,+*?<>".Contains(c));
+    }
+
+    public static XDocument GenerateWindows11(string localUserName, string executable)
     {
         if (!OperatingSystem.IsWindowsVersionAtLeast(10, 0, 22621))
             throw new NotSupportedException("当前仅支持 Windows 11 22H2 及以上版本生成正式 XML。");
-        if (string.IsNullOrWhiteSpace(sid) || !sid.StartsWith("S-1-", StringComparison.Ordinal))
-            throw new ArgumentException("学生账户 SID 无效。", nameof(sid));
+        if (!IsValidLocalUserName(localUserName))
+            throw new ArgumentException("学生本地账户名无效。", nameof(localUserName));
         if (!Path.IsPathFullyQualified(executable) || !File.Exists(executable) ||
             !string.Equals(Path.GetExtension(executable), ".exe", StringComparison.OrdinalIgnoreCase))
             throw new ArgumentException("必须选择已存在的本地 EXE 文件。", nameof(executable));
@@ -44,9 +52,9 @@ internal static class AssignedAccessConfig
                         new XElement(Base + "Taskbar", new XAttribute("ShowTaskbar", "false")))),
                 new XElement(Base + "Configs",
                     new XElement(Base + "Config",
-                        new XElement(Base + "Account", sid),
+                        new XElement(Base + "Account", @".\" + localUserName),
                         new XElement(Base + "DefaultProfile", new XAttribute("Id", id))))));
-        ValidateStructure(xml, sid, fullPath);
+        ValidateStructure(xml, @".\" + localUserName, fullPath);
         ValidatePreviewFile(xml);
         return xml;
     }
@@ -79,8 +87,9 @@ internal static class AssignedAccessConfig
             throw new InvalidDataException("未设置自动启动。");
         var config = configs[0];
         var account = (string?)config.Element(Base + "Account");
-        if (string.IsNullOrWhiteSpace(account))
-            throw new InvalidDataException("缺少账户标识。");
+        if (string.IsNullOrWhiteSpace(account) || !account.StartsWith(@".\", StringComparison.Ordinal) ||
+            !IsValidLocalUserName(account.Substring(2)))
+            throw new InvalidDataException("账户必须使用 .\\本地用户名 格式，不能使用 SID。");
         if ((string?)config.Element(Base + "DefaultProfile")?.Attribute("Id") != id)
             throw new InvalidDataException("DefaultProfile 引用不匹配。");
         var pins = (string?)profile.Element(V5 + "StartPins");
@@ -95,7 +104,7 @@ internal static class AssignedAccessConfig
             throw new InvalidDataException("预览配置应隐藏任务栏。");
     }
 
-    public static void ValidateStructure(XDocument doc, string sid, string executable)
+    public static void ValidateStructure(XDocument doc, string accountName, string executable)
     {
         var root = doc.Root ?? throw new InvalidDataException("缺少 XML 根元素。");
         if (root.Name != Base + "AssignedAccessConfiguration") throw new InvalidDataException("根元素错误。");
@@ -110,7 +119,7 @@ internal static class AssignedAccessConfig
             throw new InvalidDataException("应用配置不一致。");
         var config = root.Element(Base + "Configs")?.Element(Base + "Config")
             ?? throw new InvalidDataException("缺少账户配置。");
-        if ((string?)config.Element(Base + "Account") != sid ||
+        if ((string?)config.Element(Base + "Account") != accountName ||
             (string?)config.Element(Base + "DefaultProfile")?.Attribute("Id") != id)
             throw new InvalidDataException("账户与配置关联错误。");
         if (profile.Element(V5 + "StartPins") is null) throw new InvalidDataException("缺少 Windows 11 StartPins。");

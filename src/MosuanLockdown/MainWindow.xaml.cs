@@ -147,7 +147,7 @@ public partial class MainWindow : Window
     {
         Diagnose_Click(sender, e);
         var report = new StringBuilder();
-        report.AppendLine("墨算终端管家 v0.6 · 部署前只读检查报告");
+        report.AppendLine("墨算终端管家 v0.7 · 部署前只读检查报告");
         report.AppendLine("生成时间：" + DateTimeOffset.Now.ToString("yyyy-MM-dd HH:mm:ss zzz"));
         report.AppendLine("机器名称：" + Environment.MachineName);
         report.AppendLine("操作系统：" + Environment.OSVersion.VersionString);
@@ -192,7 +192,7 @@ public partial class MainWindow : Window
         {
             var doc = XDocument.Load(dialog.FileName, LoadOptions.None);
             AssignedAccessConfig.ValidatePreviewFile(doc);
-            Status.Text = "✓ XML 预览结构检查通过：账户、应用、自动启动、配置关联和 StartPins JSON 均存在且形式正确。"
+            Status.Text = "✓ XML 预览结构检查通过：本地账户格式、应用、自动启动、配置关联和 StartPins JSON 均存在且形式正确。"
                 + Environment.NewLine + "⚠ 未执行微软官方 XSD 校验，也未验证 Windows 实际接受该配置；禁止直接部署。";
         }
         catch (Exception ex)
@@ -207,7 +207,7 @@ public partial class MainWindow : Window
         if (!File.Exists(ExePath.Text) || !ExePath.Text.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
         { MessageBox.Show(this, "请先选择有效的 EXE 文件。"); return; }
         XDocument doc;
-        try { doc = AssignedAccessConfig.GenerateWindows11(account.Sid, ExePath.Text); }
+        try { doc = AssignedAccessConfig.GenerateWindows11(account.Name, ExePath.Text); }
         catch (Exception ex) { MessageBox.Show(this, ex.Message, "配置检查未通过"); return; }
         var save = new SaveFileDialog { FileName = "MosuanLockdown-AssignedAccess-Win11.xml", Filter = "XML 文件|*.xml" };
         if (save.ShowDialog(this) != true) return;
