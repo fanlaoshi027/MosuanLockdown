@@ -1,6 +1,6 @@
 <Window x:Class="MosuanLockdown.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="墨算终端管家 · 安全预览版" Height="900" Width="920" MinHeight="790" MinWidth="760" WindowStartupLocation="CenterScreen" Background="#F4F6FA" FontFamily="Microsoft YaHei UI">
 <Grid Margin="32"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="18"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-<StackPanel><TextBlock Text="墨算终端管家" FontSize="29" FontWeight="Bold" Foreground="#192B44"/><TextBlock Text="学生电脑管理 · v0.14 配置协议校验版" Margin="0,6,0,0" FontSize="14" Foreground="#65758B"/></StackPanel>
+<StackPanel><TextBlock Text="墨算终端管家" FontSize="29" FontWeight="Bold" Foreground="#192B44"/><TextBlock Text="学生电脑管理 · v0.15 配置导入预览版" Margin="0,6,0,0" FontSize="14" Foreground="#65758B"/></StackPanel>
 <Border Grid.Row="2" Background="White" CornerRadius="18" Padding="28"><ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel>
 <TextBlock Text="第一步 · 检查当前电脑" FontSize="21" FontWeight="SemiBold"/>
 <TextBlock x:Name="SystemInfo" Text="正在检测…" Margin="0,12,0,22" Foreground="#45556B" TextWrapping="Wrap"/>
@@ -16,6 +16,7 @@
 <CheckBox x:Name="BlockArbitraryFiles" Content="禁止浏览未授权的本地文件路径" IsChecked="True" Margin="0,4,0,4"/>
 <CheckBox x:Name="AllowPlaybackKeys" Content="允许播放暂停、快进、倍速和全屏快捷键" IsChecked="True" Margin="0,4,0,4"/>
 <Button Content="导出播放器学生模式配置 JSON" Margin="0,10,0,8" Height="36" HorizontalAlignment="Left" Padding="18,0" Click="ExportPlayerPolicy_Click"/>
+<Button Content="读取并检查已有 JSON 配置" Margin="0,0,0,8" Height="36" HorizontalAlignment="Left" Padding="18,0" Click="ImportPlayerPolicy_Click"/>
 <TextBlock Text="此 JSON 是未来播放器接口草案；当前播放器尚未接入，导出不会生效。" Foreground="#986315" FontSize="12" TextWrapping="Wrap"/>
 <TextBlock Text="第五步 · 人工确认恢复准备" Margin="0,18,0,8" FontSize="18" FontWeight="SemiBold"/>
 <CheckBox x:Name="RecoveryAdmin" Content="已在 Windows 登录界面验证备用管理员账户及密码" Margin="0,4,0,4"/>

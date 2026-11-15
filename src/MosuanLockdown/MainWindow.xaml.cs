@@ -56,6 +56,38 @@ public partial class MainWindow : Window
 
 
 
+
+    private void ImportPlayerPolicy_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new OpenFileDialog
+        {
+            Title = "选择播放器学生模式配置草案",
+            Filter = "JSON 配置文件|*.json",
+            CheckFileExists = true
+        };
+        if (dialog.ShowDialog(this) != true) return;
+        try
+        {
+            var info = new FileInfo(dialog.FileName);
+            if (info.Length > 16384 || info.Length == 0)
+                throw new InvalidDataException("文件大小不符合配置协议要求。");
+            var json = File.ReadAllText(dialog.FileName, Encoding.UTF8);
+            PlayerPolicyContract.ValidatePreview(json);
+            using var doc = JsonDocument.Parse(json);
+            var flags = doc.RootElement.GetProperty("restrictions");
+            BlockContextMenu.IsChecked = flags.GetProperty("disableContextMenu").GetBoolean();
+            BlockUnsafeKeys.IsChecked = flags.GetProperty("disableUnsafeShortcuts").GetBoolean();
+            BlockArbitraryFiles.IsChecked = flags.GetProperty("denyArbitraryFileBrowsing").GetBoolean();
+            AllowPlaybackKeys.IsChecked = flags.GetProperty("allowPlaybackShortcuts").GetBoolean();
+            Status.Text = "✓ 配置草案已验证并载入界面，可修改后重新导出。" +
+                Environment.NewLine + "⚠ 仅更改当前界面选项，未写入系统、未下发播放器、未启用任何限制。";
+        }
+        catch (Exception ex)
+        {
+            Status.Text = "✗ 配置导入失败，未更改设置：" + ex.Message;
+        }
+    }
+
     private void ExportPlayerPolicy_Click(object sender, RoutedEventArgs e)
     {
         // Contract draft only. Do not write to ProgramData or claim that the player enforces it.
@@ -221,7 +253,7 @@ public partial class MainWindow : Window
     {
         Diagnose_Click(sender, e);
         var report = new StringBuilder();
-        report.AppendLine("墨算终端管家 v0.14 · 部署前只读检查报告");
+        report.AppendLine("墨算终端管家 v0.15 · 部署前只读检查报告");
         report.AppendLine("生成时间：" + DateTimeOffset.Now.ToString("yyyy-MM-dd HH:mm:ss zzz"));
         report.AppendLine("机器名称：" + Environment.MachineName);
         report.AppendLine("操作系统：" + Environment.OSVersion.VersionString);

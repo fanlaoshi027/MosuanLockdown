@@ -14,7 +14,7 @@ Windows 10/11 Pro 学生电脑管理工具（开发中）。
 
 ## 下载测试
 
-进入 [Actions](../../actions/workflows/build-windows.yml)，选择最近一次成功的运行，在 Artifacts 下载 `MosuanLockdown-v0.14-win-x64`。解压后运行 EXE。
+进入 [Actions](../../actions/workflows/build-windows.yml)，选择最近一次成功的运行，在 Artifacts 下载 `MosuanLockdown-v0.15-win-x64`。解压后运行 EXE。
 
 软件尚未签名，Windows 可能显示未知发布者警告。仅从本仓库的 Actions 下载，并在测试电脑运行。
 
@@ -75,3 +75,7 @@ GitHub Actions 先运行独立无外部测试框架的 XML 回归测试，再发
 ## v0.14 播放器配置协议校验
 
 抽离 JSON 生成及严格校验：固定 schemaVersion=1、产品、学生模式和未接入状态，拒绝未知、缺失、重复字段及错误类型；CI 添加独立协议测试。**仍只导出预览草案，播放器未接入，不具备限制效果。**
+
+## v0.15 配置草案导入与编辑
+
+增加 JSON 文件导入，先检查文件大小和严格协议格式，通过后才将四项开关载入当前管理员界面；可修改并重新导出。导入不写入 ProgramData、不修改系统 ACL、不启动播放器、不生效。此版本不是安全策略部署功能。
