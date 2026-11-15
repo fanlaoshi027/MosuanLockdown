@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Security.AccessControl;
 using System.Text;
 using System.Security.Cryptography;
+using System.Text.Json;
 
 namespace MosuanLockdown;
 
@@ -53,6 +54,44 @@ public partial class MainWindow : Window
     }
 
 
+
+
+    private void ExportPlayerPolicy_Click(object sender, RoutedEventArgs e)
+    {
+        // Contract draft only. Do not write to ProgramData or claim that the player enforces it.
+        var policy = new
+        {
+            schemaVersion = 1,
+            product = "MosuanPlayer",
+            mode = "student",
+            restrictions = new
+            {
+                disableContextMenu = BlockContextMenu.IsChecked == true,
+                disableUnsafeShortcuts = BlockUnsafeKeys.IsChecked == true,
+                denyArbitraryFileBrowsing = BlockArbitraryFiles.IsChecked == true,
+                allowPlaybackShortcuts = AllowPlaybackKeys.IsChecked == true
+            },
+            enforcementStatus = "not-integrated",
+            note = "配置草案：播放器尚未接入，Windows 系统限制不由此 JSON 提供。"
+        };
+        var dialog = new SaveFileDialog
+        {
+            FileName = "MosuanPlayer-student-policy.preview.json",
+            Filter = "JSON 配置文件|*.json"
+        };
+        if (dialog.ShowDialog(this) != true) return;
+        try
+        {
+            File.WriteAllText(dialog.FileName,
+                JsonSerializer.Serialize(policy, new JsonSerializerOptions { WriteIndented = true }),
+                new UTF8Encoding(false));
+            Status.Text = "✓ 已导出播放器配置草案。尚未部署或生效，不能作为学生限制的证明。";
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(this, ex.Message, "导出失败");
+        }
+    }
 
     private string RecoveryChecklist()
     {
@@ -183,7 +222,7 @@ public partial class MainWindow : Window
     {
         Diagnose_Click(sender, e);
         var report = new StringBuilder();
-        report.AppendLine("墨算终端管家 v0.9 · 部署前只读检查报告");
+        report.AppendLine("墨算终端管家 v0.13 · 部署前只读检查报告");
         report.AppendLine("生成时间：" + DateTimeOffset.Now.ToString("yyyy-MM-dd HH:mm:ss zzz"));
         report.AppendLine("机器名称：" + Environment.MachineName);
         report.AppendLine("操作系统：" + Environment.OSVersion.VersionString);

@@ -14,7 +14,7 @@ Windows 10/11 Pro 学生电脑管理工具（开发中）。
 
 ## 下载测试
 
-进入 [Actions](../../actions/workflows/build-windows.yml)，选择最近一次成功的运行，在 Artifacts 下载 `MosuanLockdown-v0.12-win-x64`。解压后运行 EXE。
+进入 [Actions](../../actions/workflows/build-windows.yml)，选择最近一次成功的运行，在 Artifacts 下载 `MosuanLockdown-v0.13-win-x64`。解压后运行 EXE。
 
 软件尚未签名，Windows 可能显示未知发布者警告。仅从本仓库的 Actions 下载，并在测试电脑运行。
 
@@ -67,3 +67,7 @@ GitHub Actions 先运行独立无外部测试框架的 XML 回归测试，再发
 ## v0.12 XML 配置边界校验
 
 对照 [微软官方 Assigned Access XSD](https://learn.microsoft.com/en-us/windows/configuration/assigned-access/xsd) 的结构说明，进一步拒绝预览配置中不支持的根节点、Profiles/Configs 子节点、应用列表额外节点、Config 额外节点及 Taskbar 额外属性，并增加 6 个负例回归测试（共 18 项）。**仍未集成官方完整 XSD 验证，测试通过不代表 Windows 接受配置。**
+
+## v0.13 播放器学生模式配置草案
+
+管理员界面可以选择禁用播放器右键、危险快捷键、任意文件浏览，以及是否保留播放快捷键，并导出版本化 JSON 配置草案。**播放器尚未读取或执行此 JSON，文件也不会写入受保护的系统策略目录，所有限制均未生效。** 后续需在播放器仓库实现读取、权限校验及对应行为，再由管家安全部署。
