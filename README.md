@@ -14,7 +14,7 @@ Windows 10/11 Pro 学生电脑管理工具（开发中）。
 
 ## 下载测试
 
-进入 [Actions](../../actions/workflows/build-windows.yml)，选择最近一次成功的运行，在 Artifacts 下载 `MosuanLockdown-v0.5-win-x64`。解压后运行 EXE。
+进入 [Actions](../../actions/workflows/build-windows.yml)，选择最近一次成功的运行，在 Artifacts 下载 `MosuanLockdown-v0.6-win-x64`。解压后运行 EXE。
 
 软件尚未签名，Windows 可能显示未知发布者警告。仅从本仓库的 Actions 下载，并在测试电脑运行。
 
@@ -39,3 +39,7 @@ dotnet build src/MosuanLockdown/MosuanLockdown.csproj
 ## v0.5 检查报告
 
 增加 TXT 诊断报告导出：设备信息、选中学生账号、播放器 SHA-256、只读检查结果和人工恢复核对清单。报告可能包含设备名和账号信息，请勿上传公开 Issue。**尚未提供部署或自动恢复。**
+
+## v0.6 XML 结构检查
+
+新增“检查已有 XML 文件”，对单账户、单程序预览配置的节点、路径、自动启动、GUID 引用和 StartPins JSON 做静态检查。**不是官方 XSD 验证，也不能证明系统接受配置。**

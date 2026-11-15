@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using System.Xml.Linq;
 
@@ -46,7 +47,52 @@ internal static class AssignedAccessConfig
                         new XElement(Base + "Account", sid),
                         new XElement(Base + "DefaultProfile", new XAttribute("Id", id))))));
         ValidateStructure(xml, sid, fullPath);
+        ValidatePreviewFile(xml);
         return xml;
+    }
+
+
+    // Structural inspection only. This does NOT substitute for Microsoft's versioned XSDs.
+    public static void ValidatePreviewFile(XDocument doc)
+    {
+        var root = doc.Root ?? throw new InvalidDataException("XML 缺少根元素。");
+        if (root.Name != Base + "AssignedAccessConfiguration")
+            throw new InvalidDataException("不是预期的 Assigned Access 配置。");
+        var profiles = root.Element(Base + "Profiles")?.Elements(Base + "Profile").ToList()
+            ?? throw new InvalidDataException("缺少 Profiles。");
+        var configs = root.Element(Base + "Configs")?.Elements(Base + "Config").ToList()
+            ?? throw new InvalidDataException("缺少 Configs。");
+        if (profiles.Count != 1 || configs.Count != 1)
+            throw new InvalidDataException("预览版只接受一个 Profile 和一个 Config。");
+        var profile = profiles[0];
+        var id = (string?)profile.Attribute("Id");
+        if (!Guid.TryParse(id, out _)) throw new InvalidDataException("Profile GUID 不合法。");
+        var apps = profile.Element(Base + "AllAppsList")?.Element(Base + "AllowedApps")?.Elements(Base + "App").ToList()
+            ?? throw new InvalidDataException("缺少 AllowedApps。");
+        if (apps.Count != 1) throw new InvalidDataException("预览版只接受一个允许的 EXE。");
+        var path = (string?)apps[0].Attribute("DesktopAppPath");
+        if (string.IsNullOrWhiteSpace(path) || !Path.IsPathFullyQualified(path) ||
+            path.StartsWith(@"\\", StringComparison.Ordinal) ||
+            !string.Equals(Path.GetExtension(path), ".exe", StringComparison.OrdinalIgnoreCase))
+            throw new InvalidDataException("EXE 路径格式不合法。");
+        if ((string?)apps[0].Attribute(Rs5 + "AutoLaunch") != "true")
+            throw new InvalidDataException("未设置自动启动。");
+        var config = configs[0];
+        var account = (string?)config.Element(Base + "Account");
+        if (string.IsNullOrWhiteSpace(account))
+            throw new InvalidDataException("缺少账户标识。");
+        if ((string?)config.Element(Base + "DefaultProfile")?.Attribute("Id") != id)
+            throw new InvalidDataException("DefaultProfile 引用不匹配。");
+        var pins = (string?)profile.Element(V5 + "StartPins");
+        if (string.IsNullOrWhiteSpace(pins))
+            throw new InvalidDataException("缺少 StartPins JSON。");
+        using var json = JsonDocument.Parse(pins);
+        if (json.RootElement.ValueKind != JsonValueKind.Object ||
+            !json.RootElement.TryGetProperty("pinnedList", out var list) ||
+            list.ValueKind != JsonValueKind.Array)
+            throw new InvalidDataException("StartPins 必须包含 pinnedList 数组。");
+        if ((string?)profile.Element(Base + "Taskbar")?.Attribute("ShowTaskbar") != "false")
+            throw new InvalidDataException("预览配置应隐藏任务栏。");
     }
 
     public static void ValidateStructure(XDocument doc, string sid, string executable)
