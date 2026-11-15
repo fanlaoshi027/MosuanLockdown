@@ -63,6 +63,7 @@ internal static class AssignedAccessConfig
     // Structural inspection only. This does NOT substitute for Microsoft's versioned XSDs.
     public static void ValidatePreviewFile(XDocument doc)
     {
+        if (doc.DocumentType is not null) throw new InvalidDataException("禁止 DTD。");
         var root = doc.Root ?? throw new InvalidDataException("XML 缺少根元素。");
         if (root.Name != Base + "AssignedAccessConfiguration")
             throw new InvalidDataException("不是预期的 Assigned Access 配置。");
@@ -70,7 +71,7 @@ internal static class AssignedAccessConfig
             ?? throw new InvalidDataException("缺少 Profiles。");
         var configs = root.Element(Base + "Configs")?.Elements(Base + "Config").ToList()
             ?? throw new InvalidDataException("缺少 Configs。");
-        if (profiles.Count != 1 || configs.Count != 1)
+        if (root.Elements().Count() != 2 || profiles.Count != 1 || configs.Count != 1)
             throw new InvalidDataException("预览版只接受一个 Profile 和一个 Config。");
         var profile = profiles[0];
         var id = (string?)profile.Attribute("Id");
@@ -78,6 +79,8 @@ internal static class AssignedAccessConfig
         var apps = profile.Element(Base + "AllAppsList")?.Element(Base + "AllowedApps")?.Elements(Base + "App").ToList()
             ?? throw new InvalidDataException("缺少 AllowedApps。");
         if (apps.Count != 1) throw new InvalidDataException("预览版只接受一个允许的 EXE。");
+        if (profile.Elements().Count() != 3 || apps[0].Attributes().Count() != 2)
+            throw new InvalidDataException("发现不支持的额外配置字段。");
         var path = (string?)apps[0].Attribute("DesktopAppPath");
         if (string.IsNullOrWhiteSpace(path) || !Path.IsPathFullyQualified(path) ||
             path.StartsWith(@"\\", StringComparison.Ordinal) ||
@@ -90,7 +93,7 @@ internal static class AssignedAccessConfig
         if (string.IsNullOrWhiteSpace(account) || !account.StartsWith(@".\", StringComparison.Ordinal) ||
             !IsValidLocalUserName(account.Substring(2)))
             throw new InvalidDataException("账户必须使用 .\\本地用户名 格式，不能使用 SID。");
-        if ((string?)config.Element(Base + "DefaultProfile")?.Attribute("Id") != id)
+        if (config.Elements().Count() != 2 || (string?)config.Element(Base + "DefaultProfile")?.Attribute("Id") != id)
             throw new InvalidDataException("DefaultProfile 引用不匹配。");
         var pins = (string?)profile.Element(V5 + "StartPins");
         if (string.IsNullOrWhiteSpace(pins))

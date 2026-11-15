@@ -14,7 +14,7 @@ Windows 10/11 Pro 学生电脑管理工具（开发中）。
 
 ## 下载测试
 
-进入 [Actions](../../actions/workflows/build-windows.yml)，选择最近一次成功的运行，在 Artifacts 下载 `MosuanLockdown-v0.7-win-x64`。解压后运行 EXE。
+进入 [Actions](../../actions/workflows/build-windows.yml)，选择最近一次成功的运行，在 Artifacts 下载 `MosuanLockdown-v0.8-win-x64`。解压后运行 EXE。
 
 软件尚未签名，Windows 可能显示未知发布者警告。仅从本仓库的 Actions 下载，并在测试电脑运行。
 
@@ -47,3 +47,7 @@ dotnet build src/MosuanLockdown/MosuanLockdown.csproj
 ## v0.7 本地账户格式修正
 
 依据 Microsoft Learn，Assigned Access 的 `<Account>` 应使用本地用户名格式（如 `.\\student`），而不是 SID。生成器改为本地账户名，结构检查拒绝 SID；此修正不代表官方 XSD 或实机部署已通过。
+
+## v0.8 XML 安全读取
+
+读取外部 XML 时禁止 DTD 和外部实体解析，限制文档大小为 1 MiB，并拒绝预览配置中的部分额外节点和属性。仍不是官方 XSD 校验，不能直接部署。

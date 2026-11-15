@@ -4,6 +4,7 @@ using System.Linq;
 using System.Security.Principal;
 using System.Windows;
 using System.Xml.Linq;
+using System.Xml;
 using Microsoft.Win32;
 using System.DirectoryServices.AccountManagement;
 using System.Collections.Generic;
@@ -147,7 +148,7 @@ public partial class MainWindow : Window
     {
         Diagnose_Click(sender, e);
         var report = new StringBuilder();
-        report.AppendLine("墨算终端管家 v0.7 · 部署前只读检查报告");
+        report.AppendLine("墨算终端管家 v0.8 · 部署前只读检查报告");
         report.AppendLine("生成时间：" + DateTimeOffset.Now.ToString("yyyy-MM-dd HH:mm:ss zzz"));
         report.AppendLine("机器名称：" + Environment.MachineName);
         report.AppendLine("操作系统：" + Environment.OSVersion.VersionString);
@@ -190,7 +191,8 @@ public partial class MainWindow : Window
         if (dialog.ShowDialog(this) != true) return;
         try
         {
-            var doc = XDocument.Load(dialog.FileName, LoadOptions.None);
+            using var reader = XmlReader.Create(dialog.FileName, new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit, XmlResolver = null, MaxCharactersInDocument = 1024 * 1024 });
+            var doc = XDocument.Load(reader, LoadOptions.None);
             AssignedAccessConfig.ValidatePreviewFile(doc);
             Status.Text = "✓ XML 预览结构检查通过：本地账户格式、应用、自动启动、配置关联和 StartPins JSON 均存在且形式正确。"
                 + Environment.NewLine + "⚠ 未执行微软官方 XSD 校验，也未验证 Windows 实际接受该配置；禁止直接部署。";
