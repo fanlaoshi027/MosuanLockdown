@@ -59,21 +59,20 @@ public partial class MainWindow : Window
     private void ExportPlayerPolicy_Click(object sender, RoutedEventArgs e)
     {
         // Contract draft only. Do not write to ProgramData or claim that the player enforces it.
-        var policy = new
+        string json;
+        try
         {
-            schemaVersion = 1,
-            product = "MosuanPlayer",
-            mode = "student",
-            restrictions = new
-            {
-                disableContextMenu = BlockContextMenu.IsChecked == true,
-                disableUnsafeShortcuts = BlockUnsafeKeys.IsChecked == true,
-                denyArbitraryFileBrowsing = BlockArbitraryFiles.IsChecked == true,
-                allowPlaybackShortcuts = AllowPlaybackKeys.IsChecked == true
-            },
-            enforcementStatus = "not-integrated",
-            note = "配置草案：播放器尚未接入，Windows 系统限制不由此 JSON 提供。"
-        };
+            json = PlayerPolicyContract.CreatePreview(
+                BlockContextMenu.IsChecked == true,
+                BlockUnsafeKeys.IsChecked == true,
+                BlockArbitraryFiles.IsChecked == true,
+                AllowPlaybackKeys.IsChecked == true);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(this, ex.Message, "配置验证失败");
+            return;
+        }
         var dialog = new SaveFileDialog
         {
             FileName = "MosuanPlayer-student-policy.preview.json",
@@ -83,7 +82,7 @@ public partial class MainWindow : Window
         try
         {
             File.WriteAllText(dialog.FileName,
-                JsonSerializer.Serialize(policy, new JsonSerializerOptions { WriteIndented = true }),
+                json,
                 new UTF8Encoding(false));
             Status.Text = "✓ 已导出播放器配置草案。尚未部署或生效，不能作为学生限制的证明。";
         }
@@ -222,7 +221,7 @@ public partial class MainWindow : Window
     {
         Diagnose_Click(sender, e);
         var report = new StringBuilder();
-        report.AppendLine("墨算终端管家 v0.13 · 部署前只读检查报告");
+        report.AppendLine("墨算终端管家 v0.14 · 部署前只读检查报告");
         report.AppendLine("生成时间：" + DateTimeOffset.Now.ToString("yyyy-MM-dd HH:mm:ss zzz"));
         report.AppendLine("机器名称：" + Environment.MachineName);
         report.AppendLine("操作系统：" + Environment.OSVersion.VersionString);
