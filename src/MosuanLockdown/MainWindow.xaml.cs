@@ -51,14 +51,12 @@ public partial class MainWindow : Window
         if (StudentAccounts.SelectedItem is not AccountOption account) { MessageBox.Show(this, "请先选择学生账号。"); return; }
         if (!File.Exists(ExePath.Text) || !ExePath.Text.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
         { MessageBox.Show(this, "请先选择有效的 EXE 文件。"); return; }
-        var doc = new XDocument(new XComment("仅供预览：不是可直接部署的 Assigned Access 完整配置。"),
-            new XElement("MosuanLockdownPreview",
-                new XElement("StudentAccountSid", account.Sid),
-                new XElement("AllowedExecutable", ExePath.Text),
-                new XElement("AutoLaunch", "true")));
-        var save = new SaveFileDialog { FileName = "MosuanLockdown-preview.xml", Filter = "XML 文件|*.xml" };
+        XDocument doc;
+        try { doc = AssignedAccessConfig.GenerateWindows11(account.Sid, ExePath.Text); }
+        catch (Exception ex) { MessageBox.Show(this, ex.Message, "配置检查未通过"); return; }
+        var save = new SaveFileDialog { FileName = "MosuanLockdown-AssignedAccess-Win11.xml", Filter = "XML 文件|*.xml" };
         if (save.ShowDialog(this) != true) return;
         doc.Save(save.FileName);
-        Status.Text = "配置预览已导出（不可直接用于部署）。";
+        Status.Text = "Windows 11 Assigned Access XML 已导出。尚未进行完整 XSD 或系统部署验证，请勿直接应用。";
     }
 }
