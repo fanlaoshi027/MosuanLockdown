@@ -151,6 +151,7 @@ public partial class MainWindow : Window
         var notes = new List<string>();
         bool supported = OperatingSystem.IsWindowsVersionAtLeast(10, 0, 22621);
         notes.Add(supported ? "✓ Windows 11 22H2+：可生成候选配置。" : "✗ 仅支持 Windows 11 22H2+ 候选配置。");
+        notes.Add(WindowsEditionCheck.ReadOnlyReport());
         if (StudentAccounts.SelectedItem is AccountOption account)
             notes.Add($"✓ 已选择学生标准账户：{account.Name}。");
         else notes.Add("✗ 尚未选择已确认的学生标准账户。");
@@ -253,7 +254,7 @@ public partial class MainWindow : Window
     {
         Diagnose_Click(sender, e);
         var report = new StringBuilder();
-        report.AppendLine("墨算终端管家 v0.15 · 部署前只读检查报告");
+        report.AppendLine("墨算终端管家 v0.16 · 部署前只读检查报告");
         report.AppendLine("生成时间：" + DateTimeOffset.Now.ToString("yyyy-MM-dd HH:mm:ss zzz"));
         report.AppendLine("机器名称：" + Environment.MachineName);
         report.AppendLine("操作系统：" + Environment.OSVersion.VersionString);

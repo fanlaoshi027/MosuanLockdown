@@ -22,12 +22,14 @@ jobs:
         run: dotnet run --project tests/MosuanLockdown.XmlTests/MosuanLockdown.XmlTests.csproj -c Release
       - name: Run player policy contract tests
         run: dotnet run --project tests/MosuanLockdown.PolicyTests/MosuanLockdown.PolicyTests.csproj -c Release
+      - name: Run Windows edition classifier tests
+        run: dotnet run --project tests/MosuanLockdown.CompatibilityTests/MosuanLockdown.CompatibilityTests.csproj -c Release
       - name: Publish Windows x64
         run: dotnet publish src/MosuanLockdown/MosuanLockdown.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true -o dist
       - name: Upload executable
         uses: actions/upload-artifact@v4
         with:
-          name: MosuanLockdown-v0.15-win-x64
+          name: MosuanLockdown-v0.16-win-x64
           path: dist/
           if-no-files-found: error
           retention-days: 30

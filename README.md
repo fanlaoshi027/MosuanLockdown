@@ -14,7 +14,7 @@ Windows 10/11 Pro 学生电脑管理工具（开发中）。
 
 ## 下载测试
 
-进入 [Actions](../../actions/workflows/build-windows.yml)，选择最近一次成功的运行，在 Artifacts 下载 `MosuanLockdown-v0.15-win-x64`。解压后运行 EXE。
+进入 [Actions](../../actions/workflows/build-windows.yml)，选择最近一次成功的运行，在 Artifacts 下载 `MosuanLockdown-v0.16-win-x64`。解压后运行 EXE。
 
 软件尚未签名，Windows 可能显示未知发布者警告。仅从本仓库的 Actions 下载，并在测试电脑运行。
 
@@ -79,3 +79,7 @@ GitHub Actions 先运行独立无外部测试框架的 XML 回归测试，再发
 ## v0.15 配置草案导入与编辑
 
 增加 JSON 文件导入，先检查文件大小和严格协议格式，通过后才将四项开关载入当前管理员界面；可修改并重新导出。导入不写入 ProgramData、不修改系统 ACL、不启动播放器、不生效。此版本不是安全策略部署功能。
+
+## v0.16 Windows 版本兼容性只读检测
+
+新增注册表只读检测 EditionID、Build 和 DisplayVersion，并将判断结果加入部署前报告。仅提示候选 XML 的 Windows 11 构建要求；不以版本判断取代实际 Assigned Access 功能测试，不启用限制。CI 加入版本分类测试。
