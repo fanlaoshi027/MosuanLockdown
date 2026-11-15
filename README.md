@@ -14,7 +14,7 @@ Windows 10/11 Pro 学生电脑管理工具（开发中）。
 
 ## 下载测试
 
-进入 [Actions](../../actions/workflows/build-windows.yml)，选择最近一次成功的运行，在 Artifacts 下载 `MosuanLockdown-v0.16-win-x64`。解压后运行 EXE。
+进入 [Actions](../../actions/workflows/build-windows.yml)，选择最近一次成功的运行，在 Artifacts 下载 `MosuanLockdown-v0.17-win-x64`。解压后运行 EXE。
 
 软件尚未签名，Windows 可能显示未知发布者警告。仅从本仓库的 Actions 下载，并在测试电脑运行。
 
@@ -83,3 +83,7 @@ GitHub Actions 先运行独立无外部测试框架的 XML 回归测试，再发
 ## v0.16 Windows 版本兼容性只读检测
 
 新增注册表只读检测 EditionID、Build 和 DisplayVersion，并将判断结果加入部署前报告。仅提示候选 XML 的 Windows 11 构建要求；不以版本判断取代实际 Assigned Access 功能测试，不启用限制。CI 加入版本分类测试。
+
+## v0.17 现有 AppLocker 本地策略导出
+
+管理员可调用系统自带 PowerShell `Get-AppLockerPolicy -Local -Xml`，验证 XML 根节点并导出当前本地策略，防止覆盖旧备份。**这不是完整策略备份**：不包含 GPO、MDM、Assigned Access 或系统状态，也尚不能恢复。导出不调用 Set-AppLockerPolicy、不修改账户或策略。失败时给出原因。

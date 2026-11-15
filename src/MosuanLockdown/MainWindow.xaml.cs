@@ -12,6 +12,7 @@ using System.Security.AccessControl;
 using System.Text;
 using System.Security.Cryptography;
 using System.Text.Json;
+using System.Diagnostics;
 
 namespace MosuanLockdown;
 
@@ -254,7 +255,7 @@ public partial class MainWindow : Window
     {
         Diagnose_Click(sender, e);
         var report = new StringBuilder();
-        report.AppendLine("墨算终端管家 v0.16 · 部署前只读检查报告");
+        report.AppendLine("墨算终端管家 v0.17 · 部署前只读检查报告");
         report.AppendLine("生成时间：" + DateTimeOffset.Now.ToString("yyyy-MM-dd HH:mm:ss zzz"));
         report.AppendLine("机器名称：" + Environment.MachineName);
         report.AppendLine("操作系统：" + Environment.OSVersion.VersionString);
@@ -291,6 +292,70 @@ public partial class MainWindow : Window
         catch (Exception ex) { MessageBox.Show(this, ex.Message, "保存失败"); }
     }
 
+
+
+    private async void ExportAppLocker_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new SaveFileDialog
+        {
+            FileName = "MosuanLockdown-existing-AppLocker-policy.xml",
+            Filter = "XML 文件|*.xml"
+        };
+        if (dialog.ShowDialog(this) != true) return;
+        try
+        {
+            // Export existing local policy only. Never invoke Set-AppLockerPolicy.
+            var script = "Get-AppLockerPolicy -Local -Xml";
+            var encoded = Convert.ToBase64String(Encoding.Unicode.GetBytes(script));
+            var start = new ProcessStartInfo
+            {
+                FileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "WindowsPowerShell", "v1.0", "powershell.exe"),
+                Arguments = "-NoProfile -NonInteractive -EncodedCommand " + encoded,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true
+            };
+            using var process = Process.Start(start) ?? throw new InvalidOperationException("无法启动只读策略导出。");
+            var outputTask = process.StandardOutput.ReadToEndAsync();
+            var errorTask = process.StandardError.ReadToEndAsync();
+            using var timeout = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(25));
+            try { await process.WaitForExitAsync(timeout.Token); }
+            catch (OperationCanceledException)
+            {
+                try { process.Kill(entireProcessTree: true); } catch { }
+                throw new TimeoutException("AppLocker 导出超过 25 秒，已尝试终止。");
+            }
+            var output = await outputTask;
+            var error = await errorTask;
+            if (process.ExitCode != 0)
+                throw new InvalidOperationException("PowerShell 导出失败：" + error);
+            if (string.IsNullOrWhiteSpace(output) || output.Length > 4 * 1024 * 1024)
+                throw new InvalidDataException("策略导出为空或超过 4 MiB。");
+            using var reader = XmlReader.Create(new StringReader(output),
+                new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit, XmlResolver = null, MaxCharactersInDocument = 4 * 1024 * 1024 });
+            var doc = XDocument.Load(reader);
+            if (doc.Root?.Name.LocalName != "AppLockerPolicy")
+                throw new InvalidDataException("导出内容不是 AppLockerPolicy XML。");
+            // Atomic local write to avoid partial backup files.
+            var target = Path.GetFullPath(dialog.FileName);
+            if (File.Exists(target)) throw new IOException("目标文件已存在，请更换文件名，避免覆盖旧备份。");
+            var temporary = target + "." + Guid.NewGuid().ToString("N") + ".tmp";
+            try
+            {
+                File.WriteAllText(temporary, output, new UTF8Encoding(false));
+                File.Move(temporary, target);
+            }
+            finally { if (File.Exists(temporary)) File.Delete(temporary); }
+            Status.Text = "✓ 已导出当前 AppLocker 本地策略 XML。" + Environment.NewLine +
+                "⚠ 仅备份 AppLocker 本地策略，不包含 GPO/MDM/Assigned Access 或完整系统状态；尚未提供恢复功能。";
+        }
+        catch (Exception ex)
+        {
+            Status.Text = "✗ AppLocker 本地策略导出失败：" + ex.Message +
+                Environment.NewLine + "未更改任何 Windows 策略。";
+        }
+    }
 
     private void ValidateXml_Click(object sender, RoutedEventArgs e)
     {
