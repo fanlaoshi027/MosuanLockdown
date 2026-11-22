@@ -158,12 +158,20 @@ public partial class MainWindow : Window
         Status.Text = RecoveryChecklist();
     }
 
+    private void InspectWindowsCapabilities_Click(object sender, RoutedEventArgs e)
+    {
+        Status.Text = WindowsEditionCheck.ReadOnlyReport() + Environment.NewLine +
+            WindowsPolicyPreflight.ReadOnlyReport() + Environment.NewLine +
+            "结论：仅完成只读能力检查；未验证真实部署，禁止启用限制。";
+    }
+
     private void Diagnose_Click(object sender, RoutedEventArgs e)
     {
         var notes = new List<string>();
         bool supported = OperatingSystem.IsWindowsVersionAtLeast(10, 0, 22621);
         notes.Add(supported ? "✓ Windows 11 22H2+：可生成候选配置。" : "✗ 仅支持 Windows 11 22H2+ 候选配置。");
         notes.Add(WindowsEditionCheck.ReadOnlyReport());
+        notes.Add(WindowsPolicyPreflight.ReadOnlyReport());
         if (StudentAccounts.SelectedItem is AccountOption account)
             notes.Add($"✓ 已选择学生标准账户：{account.Name}。");
         else notes.Add("✗ 尚未选择已确认的学生标准账户。");

@@ -1,7 +1,7 @@
 <Window x:Class="MosuanLockdown.MainWindow"
  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
- Title="墨算终端管家 · v0.21 安全预览版"
+ Title="墨算终端管家 · v0.22 安全预览版"
  Width="1080" Height="800" MinWidth="850" MinHeight="640"
  WindowStartupLocation="CenterScreen" Background="#F3F6FB" FontFamily="Microsoft YaHei UI">
  <Window.Resources>
@@ -35,7 +35,7 @@
    <Grid>
     <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
     <StackPanel>
-     <TextBlock Text="墨算终端管家  v0.21" FontSize="27" FontWeight="Bold" Foreground="#18365B"/>
+     <TextBlock Text="墨算终端管家  v0.22" FontSize="27" FontWeight="Bold" Foreground="#18365B"/>
      <TextBlock Text="Windows 学生电脑管理 · 只读检查与配置预览" Margin="0,5,0,0" Foreground="#667A93"/>
     </StackPanel>
     <Border Grid.Column="1" Background="#E9F3FF" CornerRadius="10" Padding="16,10" VerticalAlignment="Center">
@@ -68,6 +68,8 @@
       <ComboBox x:Name="StudentAccounts" DisplayMemberPath="DisplayName" Height="38" MaxWidth="520" HorizontalAlignment="Left" MinWidth="330"/>
       <TextBlock Text="仅显示能够确认不是管理员的本地标准用户。" Foreground="#6D7D91" Margin="0,8,0,16"/>
       <Button Content="运行部署前安全检查" HorizontalAlignment="Left" Click="Diagnose_Click"/>
+      <Button Content="查看系统限制能力（只读）" HorizontalAlignment="Left" Click="InspectWindowsCapabilities_Click"/>
+      <TextBlock Text="此检测读取系统版本、Application Identity 服务及 MDM 注册表路径，不启用任何策略。" TextWrapping="Wrap" Foreground="#65778D" Margin="0,6,0,12"/>
       <TextBlock Text="检查结果和操作提示会显示在窗口底部；检查不代表已具备部署条件。" TextWrapping="Wrap" Foreground="#986315" Margin="0,12,0,0"/>
      </StackPanel>
     </ScrollViewer>
