@@ -14,7 +14,7 @@ Windows 10/11 Pro 学生电脑管理工具（开发中）。
 
 ## 下载测试
 
-进入 [Actions](../../actions/workflows/build-windows.yml)，选择最近一次成功的运行，在 Artifacts 下载 `MosuanLockdown-v0.20-win-x64`。解压后运行 EXE。
+进入 [Actions](../../actions/workflows/build-windows.yml)，选择最近一次成功的运行，在 Artifacts 下载 `MosuanLockdown-v0.21-win-x64`。解压后运行 EXE。
 
 软件尚未签名，Windows 可能显示未知发布者警告。仅从本仓库的 Actions 下载，并在测试电脑运行。
 
@@ -99,3 +99,7 @@ AppLocker 只读导出增加 XML 根节点和子节点白名单检查；保存�
 ## v0.20 首页真实检查摘要
 
 首页增加明确的禁止部署状态，以及上一次只读检查的通过/警告/阻断数量和检查时间。计数仅基于实际诊断行，不把人工恢复勾选或文字说明当作检查通过。更换学生账户或播放器 EXE 后旧摘要立即失效。无自动部署和策略修改。
+
+## v0.21 AppLocker 备份文件只读验证
+
+策略备份页面新增打开已有 AppLocker XML 并检查结构、文件大小、DTD 与 SHA-256 的入口。可输入导出时记录的 64 位 SHA-256 作一致性比较；不输入时只显示当前哈希，不能确认文件未被修改。此功能不导入或应用策略，不能证明备份可恢复。

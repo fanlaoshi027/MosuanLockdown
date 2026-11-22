@@ -1,7 +1,7 @@
 <Window x:Class="MosuanLockdown.MainWindow"
  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
- Title="墨算终端管家 · v0.20 安全预览版"
+ Title="墨算终端管家 · v0.21 安全预览版"
  Width="1080" Height="800" MinWidth="850" MinHeight="640"
  WindowStartupLocation="CenterScreen" Background="#F3F6FB" FontFamily="Microsoft YaHei UI">
  <Window.Resources>
@@ -35,7 +35,7 @@
    <Grid>
     <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
     <StackPanel>
-     <TextBlock Text="墨算终端管家  v0.20" FontSize="27" FontWeight="Bold" Foreground="#18365B"/>
+     <TextBlock Text="墨算终端管家  v0.21" FontSize="27" FontWeight="Bold" Foreground="#18365B"/>
      <TextBlock Text="Windows 学生电脑管理 · 只读检查与配置预览" Margin="0,5,0,0" Foreground="#667A93"/>
     </StackPanel>
     <Border Grid.Column="1" Background="#E9F3FF" CornerRadius="10" Padding="16,10" VerticalAlignment="Center">
@@ -105,6 +105,12 @@
       <TextBlock Text="AppLocker 本地策略备份" Style="{StaticResource SectionHeading}"/>
       <TextBlock Text="导出当前本地 AppLocker 策略 XML，保存后重新读取并显示 SHA-256 校验值。" TextWrapping="Wrap" Foreground="#41546B" Margin="0,0,0,14"/>
       <Button Content="导出现有 AppLocker 本地策略 XML" HorizontalAlignment="Left" Click="ExportAppLocker_Click"/>
+      <Border Height="1" Background="#DEE7F2" Margin="0,18,0,18"/>
+      <TextBlock Text="验证已有备份（只读）" Style="{StaticResource SectionHeading}"/>
+      <TextBlock Text="可以粘贴导出时记录的 SHA-256，验证文件是否保持一致。留空时仅检查 XML 格式并计算当前哈希。" TextWrapping="Wrap" Foreground="#41546B"/>
+      <TextBox x:Name="ExpectedBackupHash" Margin="0,10,0,8" Padding="10" MaxLength="64" ToolTip="可选：64 位十六进制 SHA-256" />
+      <Button Content="选择 AppLocker XML 并验证" HorizontalAlignment="Left" Click="VerifyAppLockerBackup_Click"/>
+      <TextBlock Text="验证通过仅说明文件结构和可选哈希匹配，不证明策略可恢复。" TextWrapping="Wrap" Foreground="#986315" Margin="0,7,0,0"/>
       <Border Background="#FFF7E8" CornerRadius="8" Padding="16" Margin="0,18,0,0">
        <TextBlock Text="注意：这不是完整系统备份，不包含 GPO、MDM、Assigned Access 或 BitLocker 恢复密钥，也不具备一键恢复能力。" TextWrapping="Wrap" Foreground="#815B21"/>
       </Border>

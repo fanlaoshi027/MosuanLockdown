@@ -314,6 +314,57 @@ public partial class MainWindow : Window
 
 
 
+    private void VerifyAppLockerBackup_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new OpenFileDialog
+        {
+            Title = "选择已有 AppLocker 本地策略备份",
+            Filter = "XML 文件|*.xml",
+            CheckFileExists = true
+        };
+        if (dialog.ShowDialog(this) != true) return;
+        try
+        {
+            var info = new FileInfo(dialog.FileName);
+            if (info.Length <= 0 || info.Length > 4 * 1024 * 1024)
+                throw new InvalidDataException("备份 XML 为空或超过 4 MiB。");
+            var expected = ExpectedBackupHash.Text.Trim();
+            if (expected.Length != 0 &&
+                (expected.Length != 64 || expected.Any(c => !Uri.IsHexDigit(c))))
+                throw new InvalidDataException("预期 SHA-256 必须是 64 位十六进制字符，或留空。");
+            using (var stream = File.OpenRead(dialog.FileName))
+            using (var reader = XmlReader.Create(stream, new XmlReaderSettings
+            {
+                DtdProcessing = DtdProcessing.Prohibit,
+                XmlResolver = null,
+                MaxCharactersInDocument = 4 * 1024 * 1024,
+                MaxCharactersFromEntities = 0
+            }))
+            {
+                var doc = XDocument.Load(reader, LoadOptions.None);
+                if (doc.Root?.Name != XName.Get("AppLockerPolicy") ||
+                    doc.DocumentType is not null ||
+                    doc.Root.Attributes().Any(a => a.Name.LocalName != "Version" || a.IsNamespaceDeclaration) ||
+                    doc.Root.Elements().Any(e => e.Name != XName.Get("RuleCollection")))
+                    throw new InvalidDataException("不是预期的 AppLocker 本地策略 XML。");
+            }
+            string actual;
+            using (var stream = File.OpenRead(dialog.FileName))
+                actual = Convert.ToHexString(SHA256.HashData(stream));
+            if (expected.Length > 0 && !string.Equals(expected, actual, StringComparison.OrdinalIgnoreCase))
+                throw new InvalidDataException("SHA-256 不匹配！文件与记录的备份内容不一致。当前哈希：" + actual);
+            Status.Text = "✓ AppLocker 备份 XML 结构检查通过。" + Environment.NewLine +
+                "当前 SHA-256：" + actual + Environment.NewLine +
+                (expected.Length > 0 ? "✓ 与输入的预期哈希匹配。" : "△ 未提供原始哈希，无法确认文件是否曾被修改。") +
+                Environment.NewLine + "⚠ 不代表可恢复，不包含 GPO/MDM/Assigned Access；没有修改系统策略。";
+        }
+        catch (Exception ex)
+        {
+            Status.Text = "✗ AppLocker 备份验证失败：" + ex.Message +
+                Environment.NewLine + "未导入、应用或修改任何策略。";
+        }
+    }
+
     private async void ExportAppLocker_Click(object sender, RoutedEventArgs e)
     {
         var dialog = new SaveFileDialog
