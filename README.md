@@ -14,7 +14,7 @@ Windows 10/11 Pro 学生电脑管理工具（开发中）。
 
 ## 下载测试
 
-进入 [Actions](../../actions/workflows/build-windows.yml)，选择最近一次成功的运行，在 Artifacts 下载 `MosuanLockdown-v0.17-win-x64`。解压后运行 EXE。
+进入 [Actions](../../actions/workflows/build-windows.yml)，选择最近一次成功的运行，在 Artifacts 下载 `MosuanLockdown-v0.18-win-x64`。解压后运行 EXE。
 
 软件尚未签名，Windows 可能显示未知发布者警告。仅从本仓库的 Actions 下载，并在测试电脑运行。
 
@@ -87,3 +87,7 @@ GitHub Actions 先运行独立无外部测试框架的 XML 回归测试，再发
 ## v0.17 现有 AppLocker 本地策略导出
 
 管理员可调用系统自带 PowerShell `Get-AppLockerPolicy -Local -Xml`，验证 XML 根节点并导出当前本地策略，防止覆盖旧备份。**这不是完整策略备份**：不包含 GPO、MDM、Assigned Access 或系统状态，也尚不能恢复。导出不调用 Set-AppLockerPolicy、不修改账户或策略。失败时给出原因。
+
+## v0.18 AppLocker 备份完整性
+
+AppLocker 只读导出增加 XML 根节点和子节点白名单检查；保存后重新读取文件并显示 SHA-256，便于人工记录和以后比对。此哈希不代表数字签名或完整系统备份，也不能证明策略可恢复。软件不修改 Windows 策略。

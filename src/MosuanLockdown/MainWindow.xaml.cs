@@ -255,7 +255,7 @@ public partial class MainWindow : Window
     {
         Diagnose_Click(sender, e);
         var report = new StringBuilder();
-        report.AppendLine("墨算终端管家 v0.17 · 部署前只读检查报告");
+        report.AppendLine("墨算终端管家 v0.18 · 部署前只读检查报告");
         report.AppendLine("生成时间：" + DateTimeOffset.Now.ToString("yyyy-MM-dd HH:mm:ss zzz"));
         report.AppendLine("机器名称：" + Environment.MachineName);
         report.AppendLine("操作系统：" + Environment.OSVersion.VersionString);
@@ -335,8 +335,12 @@ public partial class MainWindow : Window
             using var reader = XmlReader.Create(new StringReader(output),
                 new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit, XmlResolver = null, MaxCharactersInDocument = 4 * 1024 * 1024 });
             var doc = XDocument.Load(reader);
-            if (doc.Root?.Name.LocalName != "AppLockerPolicy")
-                throw new InvalidDataException("导出内容不是 AppLockerPolicy XML。");
+            if (doc.Root?.Name != XName.Get("AppLockerPolicy"))
+                throw new InvalidDataException("导出内容不是预期的无命名空间 AppLockerPolicy XML。");
+            if (doc.DocumentType is not null || doc.Root.Elements().Any(e => e.Name != XName.Get("RuleCollection")))
+                throw new InvalidDataException("AppLocker 策略存在不支持的 XML 结构。");
+            if (doc.Root.Attributes().Any(a => a.Name.LocalName != "Version" || a.IsNamespaceDeclaration))
+                throw new InvalidDataException("AppLocker 策略根节点存在不支持的属性。");
             // Atomic local write to avoid partial backup files.
             var target = Path.GetFullPath(dialog.FileName);
             if (File.Exists(target)) throw new IOException("目标文件已存在，请更换文件名，避免覆盖旧备份。");
@@ -347,7 +351,12 @@ public partial class MainWindow : Window
                 File.Move(temporary, target);
             }
             finally { if (File.Exists(temporary)) File.Delete(temporary); }
-            Status.Text = "✓ 已导出当前 AppLocker 本地策略 XML。" + Environment.NewLine +
+            // Verify persisted bytes, and report an integrity fingerprint for later manual comparison.
+            byte[] saved = File.ReadAllBytes(target);
+            var sha256 = Convert.ToHexString(SHA256.HashData(saved));
+            Status.Text = "✓ 已导出并重新读取 AppLocker 本地策略 XML。" + Environment.NewLine +
+                "文件 SHA-256：" + sha256 + Environment.NewLine +
+                "请将此哈希与备份文件一起妥善保存，用于以后人工校验文件是否改变。" + Environment.NewLine +
                 "⚠ 仅备份 AppLocker 本地策略，不包含 GPO/MDM/Assigned Access 或完整系统状态；尚未提供恢复功能。";
         }
         catch (Exception ex)
