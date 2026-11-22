@@ -107,3 +107,7 @@ AppLocker 只读导出增加 XML 根节点和子节点白名单检查；保存�
 ## v0.22 Windows 专业版部署前只读能力检查
 
 新增独立系统能力检查按钮，并将结果纳入部署前诊断：Windows SKU/构建号、Application Identity (AppIDSvc) 当前服务状态、MDM 注册表路径存在性。所有结果均为保守提示，不能证明策略可强制执行或设备未受组织管理。禁止部署不变。仅支持 Windows 版本。
+
+## v0.22.1 编译修复
+
+补充 System.ServiceProcess.ServiceController .NET 10 包引用，修复 v0.22 的 CS1069/CS0103 构建错误。此版本仅修复编译依赖，不改变策略执行行为。
