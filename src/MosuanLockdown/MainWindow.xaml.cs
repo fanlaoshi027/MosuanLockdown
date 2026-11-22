@@ -222,6 +222,11 @@ public partial class MainWindow : Window
         int blocked = notes.Count(line => line.StartsWith("✗", StringComparison.Ordinal));
         int warnings = notes.Count(line => line.StartsWith("⚠", StringComparison.Ordinal) ||
                                             line.StartsWith("△", StringComparison.Ordinal));
+        var gate = DeploymentSafetyGate.Evaluate(passed, warnings, blocked,
+            backupVerified: false, recoveryTested: false, policySchemaVerified: false,
+            actualDeploymentTested: false);
+        DeploymentGateStatus.Text = gate.Headline;
+        DeploymentGateDetails.Text = gate.Explanation;
         CheckSummary.Text = $"通过 {passed} 项  ·  警告 {warnings} 项  ·  阻断 {blocked} 项";
         CheckSummaryTime.Text = "检查时间：" + DateTimeOffset.Now.ToString("yyyy-MM-dd HH:mm:ss zzz") +
             "  ·  仅统计诊断行，不含人工勾选项；不等于正式部署认证。";
@@ -283,7 +288,7 @@ public partial class MainWindow : Window
     {
         Diagnose_Click(sender, e);
         var report = new StringBuilder();
-        report.AppendLine("墨算终端管家 v0.19 · 部署前只读检查报告");
+        report.AppendLine("墨算终端管家 v0.23 · 部署前只读检查报告");
         report.AppendLine("生成时间：" + DateTimeOffset.Now.ToString("yyyy-MM-dd HH:mm:ss zzz"));
         report.AppendLine("机器名称：" + Environment.MachineName);
         report.AppendLine("操作系统：" + Environment.OSVersion.VersionString);
