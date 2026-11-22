@@ -255,7 +255,7 @@ public partial class MainWindow : Window
     {
         Diagnose_Click(sender, e);
         var report = new StringBuilder();
-        report.AppendLine("墨算终端管家 v0.18 · 部署前只读检查报告");
+        report.AppendLine("墨算终端管家 v0.19 · 部署前只读检查报告");
         report.AppendLine("生成时间：" + DateTimeOffset.Now.ToString("yyyy-MM-dd HH:mm:ss zzz"));
         report.AppendLine("机器名称：" + Environment.MachineName);
         report.AppendLine("操作系统：" + Environment.OSVersion.VersionString);
