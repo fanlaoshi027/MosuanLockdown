@@ -25,7 +25,14 @@ public partial class MainWindow : Window
         var admin = new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator);
         SystemInfo.Text = $"操作系统：{Environment.OSVersion.VersionString}\n当前用户：{Environment.UserName}\n管理员权限：{(admin ? "是" : "否")}\n注意：本预览版尚未验证 Assigned Access 兼容性。";
         LoadAccounts();
+        StudentAccounts.SelectionChanged += (_, _) => InvalidateCheckSummary();
     }
+    private void InvalidateCheckSummary()
+    {
+        CheckSummary.Text = "检查条件已更改 · 请重新检查";
+        CheckSummaryTime.Text = "上次结果已失效；本版本始终禁止部署。";
+    }
+
     private void LoadAccounts()
     {
         try
@@ -51,7 +58,11 @@ public partial class MainWindow : Window
     private void ChooseExe_Click(object sender, RoutedEventArgs e)
     {
         var dialog = new OpenFileDialog { Filter = "Windows 程序 (*.exe)|*.exe", Title = "选择允许学生运行的软件" };
-        if (dialog.ShowDialog(this) == true) ExePath.Text = dialog.FileName;
+        if (dialog.ShowDialog(this) == true)
+        {
+            ExePath.Text = dialog.FileName;
+            InvalidateCheckSummary();
+        }
     }
 
 
@@ -197,6 +208,15 @@ public partial class MainWindow : Window
         notes.Add(RecoveryChecklist());
         notes.Add("⚠ 未验证策略冲突、实际学生登录、系统回滚和 Assigned Access 完整 XSD。");
         notes.Add("结论：本版本仍不允许部署；仅供诊断和 XML 导出。");
+        // Count only actual diagnostic lines, not the recovery checklist's manual declarations.
+        // A positive advisory (△) is still a warning, never a verified pass.
+        int passed = notes.Count(line => line.StartsWith("✓", StringComparison.Ordinal));
+        int blocked = notes.Count(line => line.StartsWith("✗", StringComparison.Ordinal));
+        int warnings = notes.Count(line => line.StartsWith("⚠", StringComparison.Ordinal) ||
+                                            line.StartsWith("△", StringComparison.Ordinal));
+        CheckSummary.Text = $"通过 {passed} 项  ·  警告 {warnings} 项  ·  阻断 {blocked} 项";
+        CheckSummaryTime.Text = "检查时间：" + DateTimeOffset.Now.ToString("yyyy-MM-dd HH:mm:ss zzz") +
+            "  ·  仅统计诊断行，不含人工勾选项；不等于正式部署认证。";
         Status.Text = string.Join(Environment.NewLine, notes);
     }
 
