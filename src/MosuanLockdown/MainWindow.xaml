@@ -75,6 +75,7 @@
       <TextBlock Text="仅显示能够确认不是管理员的本地标准用户。" Foreground="#6D7D91" Margin="0,8,0,16"/>
       <Button Content="运行部署前安全检查" HorizontalAlignment="Left" Click="Diagnose_Click"/>
       <Button Content="查看系统限制能力（只读）" HorizontalAlignment="Left" Click="InspectWindowsCapabilities_Click"/>
+      <Button Content="Windows 11 Enterprise / Shell Launcher 检测（只读）" HorizontalAlignment="Left" Click="InspectEnterpriseShell_Click"/>
       <TextBlock Text="此检测读取系统版本、Application Identity 服务及 MDM 注册表路径，不启用任何策略。" TextWrapping="Wrap" Foreground="#65778D" Margin="0,6,0,12"/>
       <TextBlock Text="检查结果和操作提示会显示在窗口底部；检查不代表已具备部署条件。" TextWrapping="Wrap" Foreground="#986315" Margin="0,12,0,0"/>
      </StackPanel>
