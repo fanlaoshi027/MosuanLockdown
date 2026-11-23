@@ -239,6 +239,20 @@ public partial class MainWindow : Window
         Status.Text = string.Join(Environment.NewLine, details);
     }
 
+    private void PreviewRecovery_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new OpenFolderDialog
+        {
+            Title = "选择已导出的 Shell Launcher 快照目录（只读恢复规划）",
+            Multiselect = false
+        };
+        if (dialog.ShowDialog(this) != true) return;
+        var result = ShellRecoveryPreview.Inspect(dialog.FolderName, ExpectedShellHash.Text.Trim());
+        Status.Text = result.Explanation + Environment.NewLine +
+            string.Join(Environment.NewLine, result.Steps) + Environment.NewLine +
+            "⚠ 这只是人工恢复核对清单；尚未实现自动恢复或系统策略修改。";
+    }
+
     private void Diagnose_Click(object sender, RoutedEventArgs e)
     {
         var notes = new List<string>();
