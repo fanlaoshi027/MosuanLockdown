@@ -170,6 +170,27 @@ public partial class MainWindow : Window
         Status.Text = EnterpriseShellPreflight.Inspect().Describe();
     }
 
+    private void ExportShellInventory_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new OpenFolderDialog
+        {
+            Title = "选择 Shell Launcher 只读清单保存目录",
+            Multiselect = false
+        };
+        if (dialog.ShowDialog(this) != true) return;
+        try
+        {
+            var result = ShellLauncherInventory.Export(dialog.FolderName);
+            Status.Text = "✓ 已导出只读清单: " + result.Folder + Environment.NewLine +
+                "SHA-256: " + result.Sha256 + Environment.NewLine +
+                "⚠ 清单不是完整恢复备份，禁止依据此操作启用系统限制。";
+        }
+        catch (Exception ex)
+        {
+            Status.Text = "✗ 清单导出失败，未修改系统策略：" + ex.Message;
+        }
+    }
+
     private void Diagnose_Click(object sender, RoutedEventArgs e)
     {
         var notes = new List<string>();
