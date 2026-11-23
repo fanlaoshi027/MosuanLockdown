@@ -44,4 +44,21 @@ finally
 {
     Directory.Delete(testFolder, recursive: true);
 }
-Console.WriteLine("PASS: 14 compatibility / Enterprise / snapshot tests");
+var kiosk = new StudentKioskPlan.Input(
+    "S-1-5-21-100-200-300-1001", "S-1-5-21-100-200-300-500",
+    @"C:\\Program Files\\Mosuan\\MosuanPlayer2027.exe",
+    true, true, true, true, true, true);
+var complete = StudentKioskPlan.Assess(kiosk);
+Assert(!complete.ReadyForDeployment && complete.Blockers.Count == 0,
+    "Even complete evidence must not unlock deployment automatically");
+Assert(StudentKioskPlan.Assess(kiosk with { StudentSid = kiosk.AdministratorSid }).Blockers.Count > 0,
+    "Student/admin SID separation");
+Assert(StudentKioskPlan.Assess(kiosk with { PlayerExecutable = @"\\\\server\\player.exe" }).Blockers.Count > 0,
+    "UNC executable rejected");
+Assert(StudentKioskPlan.Assess(kiosk with { PlayerExecutable = @"C:\\player.exe /silent" }).Blockers.Count > 0,
+    "Command arguments rejected");
+Assert(StudentKioskPlan.Assess(kiosk with { ApplicationControlEnforced = false }).Blockers.Count > 0,
+    "Shell Launcher alone insufficient");
+Assert(StudentKioskPlan.Assess(kiosk with { AdministratorRecoveryConfirmed = false }).Blockers.Count > 0,
+    "Admin recovery mandatory");
+Console.WriteLine("PASS: compatibility / Enterprise / snapshot / kiosk safety tests");
