@@ -71,8 +71,20 @@ internal static class EnterpriseShellPreflight
                 new System.Management.ManagementPath("WESL_UserSetting"), null);
             clazz.Get();
             provider = "Available";
-            // Reading the WMI class is safe; querying activation is implemented in a later stage.
-            diagnostic.Add("△ WESL_UserSetting 类可读取；当前启用状态尚未确认。");
+            // Only WMI read-only methods are invoked.
+            try
+            {
+                using var enabledResult = clazz.InvokeMethod("IsEnabled", null, null);
+                if (enabledResult is null || Convert.ToUInt32(enabledResult["ReturnValue"]) != 0)
+                    diagnostic.Add("⚠ WESL_UserSetting.IsEnabled 未能返回成功状态。");
+                else
+                    state = Convert.ToBoolean(enabledResult["Enabled"]) ? "Enabled" : "Disabled";
+            }
+            catch (Exception ex)
+            {
+                diagnostic.Add("⚠ 读取 Shell Launcher 启用状态失败: " + ex.Message);
+            }
+            diagnostic.Add("△ Shell Launcher 提供程序只读查询完成；未执行任何 Set* 操作。");
         }
         catch (Exception ex)
         {
