@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading.Tasks;
 using Microsoft.Win32;
 
 namespace MosuanLockdown;
@@ -118,14 +119,22 @@ internal static class EnterpriseShellPreflight
                 CreateNoWindow = true
             };
             proc.Start();
-            string output = proc.StandardOutput.ReadToEnd();
-            string error = proc.StandardError.ReadToEnd();
+            // Drain both redirected streams concurrently to prevent pipe deadlocks.
+            Task<string> stdout = proc.StandardOutput.ReadToEndAsync();
+            Task<string> stderr = proc.StandardError.ReadToEndAsync();
             if (!proc.WaitForExit(15000))
             {
                 try { proc.Kill(entireProcessTree: true); } catch { }
                 diagnostic.Add("✗ DISM 只读检查超时。");
                 return "Unknown";
             }
+            if (!Task.WaitAll(new Task[] { stdout, stderr }, 2000))
+            {
+                diagnostic.Add("✗ DISM 输出读取超时。");
+                return "Unknown";
+            }
+            string output = stdout.Result;
+            string error = stderr.Result;
             if (proc.ExitCode != 0)
             {
                 diagnostic.Add("✗ DISM 检查失败: " + error.Trim());
