@@ -165,6 +165,11 @@ public partial class MainWindow : Window
             "结论：仅完成只读能力检查；未验证真实部署，禁止启用限制。";
     }
 
+    private void InspectEnterpriseShell_Click(object sender, RoutedEventArgs e)
+    {
+        Status.Text = EnterpriseShellPreflight.Inspect().Describe();
+    }
+
     private void Diagnose_Click(object sender, RoutedEventArgs e)
     {
         var notes = new List<string>();
