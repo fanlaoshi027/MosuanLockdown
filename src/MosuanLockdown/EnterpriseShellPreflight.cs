@@ -28,7 +28,7 @@ internal static class EnterpriseShellPreflight
              Edition.Equals("EnterpriseSN", StringComparison.OrdinalIgnoreCase) ||
              Edition.Equals("EnterpriseN", StringComparison.OrdinalIgnoreCase)) &&
             Build >= 22000 &&
-            Architecture == Architecture.X64 &&
+            Architecture == System.Runtime.InteropServices.Architecture.X64 &&
             FeatureState.Equals("Enabled", StringComparison.OrdinalIgnoreCase) &&
             WmiProviderState == "Available" &&
             ShellLauncherState != "Unknown";
