@@ -239,6 +239,41 @@ public partial class MainWindow : Window
         Status.Text = string.Join(Environment.NewLine, details);
     }
 
+    private void ExportStudentShellProposal_Click(object sender, RoutedEventArgs e)
+    {
+        if (StudentAccounts.SelectedItem is not AccountOption account)
+        {
+            Status.Text = "✗ 请先选择学生标准账户。";
+            return;
+        }
+        if (!File.Exists(ExePath.Text))
+        {
+            Status.Text = "✗ 请先选择已安装的墨算播放器 EXE。";
+            return;
+        }
+        try
+        {
+            var proposal = StudentShellProposal.Create(account.Sid, ExePath.Text);
+            var dialog = new SaveFileDialog
+            {
+                Title = "保存学生专用 Shell 配置预览（不会执行）",
+                FileName = "MosuanLockdown-student-shell.preview.json",
+                Filter = "JSON 配置预览|*.json"
+            };
+            if (dialog.ShowDialog(this) != true) return;
+            if (File.Exists(dialog.FileName))
+                throw new IOException("目标文件已存在，拒绝覆盖旧预览。");
+            File.WriteAllText(dialog.FileName, StudentShellProposal.ToJson(proposal),
+                new UTF8Encoding(false));
+            Status.Text = "✓ 已导出学生专用 Shell 配置预览。管理员桌面保持不变。" +
+                Environment.NewLine + "⚠ 此文件不可直接执行，不会启用系统限制或应用白名单。";
+        }
+        catch (Exception ex)
+        {
+            Status.Text = "✗ 无法导出预览：" + ex.Message;
+        }
+    }
+
     private void PreviewRecovery_Click(object sender, RoutedEventArgs e)
     {
         var dialog = new OpenFolderDialog
