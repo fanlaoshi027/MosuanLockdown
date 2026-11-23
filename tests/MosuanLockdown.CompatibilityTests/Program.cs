@@ -72,6 +72,12 @@ Assert(StudentShellProposal.ToJson(proposal).Contains("RestartPlayerAfterExit"),
     "Student player restart is represented only as a proposal");
 try
 {
+    StudentShellProposal.Create("S-1-5-21-not-a-valid-sid", kiosk.PlayerExecutable);
+    throw new Exception("Malformed SID was accepted");
+}
+catch (ArgumentException) { }
+try
+{
     StudentShellProposal.Create(kiosk.StudentSid, @"\\\\server\\player.exe");
     throw new Exception("UNC path was accepted");
 }
