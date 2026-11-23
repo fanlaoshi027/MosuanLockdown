@@ -36,9 +36,11 @@ try
     var sha = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(inventoryPath))).ToLowerInvariant();
     File.WriteAllText(Path.Combine(testFolder, "inventory.sha256"), sha + "  inventory.json");
     Assert(ShellSnapshotVerifier.Verify(testFolder, sha).Consistent, "Snapshot and external hash valid");
+    Assert(ShellRecoveryPreview.Inspect(testFolder, sha).Valid, "Verified snapshot supports read-only recovery preview");
     Assert(!ShellSnapshotVerifier.Verify(testFolder, new string('0', 64)).Consistent, "External hash mismatch");
     File.AppendAllText(inventoryPath, " ");
     Assert(!ShellSnapshotVerifier.Verify(testFolder).Consistent, "Tampered snapshot detected");
+    Assert(!ShellRecoveryPreview.Inspect(testFolder).Valid, "Tampered snapshot blocks recovery preview");
 }
 finally
 {
