@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Text.Json;
+using System.Security.Principal;
 
 namespace MosuanLockdown;
 
@@ -17,9 +18,7 @@ internal static class StudentShellProposal
 
     public static Proposal Create(string studentSid, string playerExecutable)
     {
-        if (string.IsNullOrWhiteSpace(studentSid) ||
-            !studentSid.StartsWith("S-1-5-21-", StringComparison.Ordinal) ||
-            !IsSafeLocalExecutable(playerExecutable))
+        if (!IsLocalAccountSid(studentSid) || !IsSafeLocalExecutable(playerExecutable))
             throw new ArgumentException("学生账户或播放器路径不符合安全预览要求。");
 
         return new Proposal(
@@ -31,6 +30,15 @@ internal static class StudentShellProposal
 
     public static string ToJson(Proposal proposal) =>
         JsonSerializer.Serialize(proposal, new JsonSerializerOptions { WriteIndented = true });
+
+    private static bool IsLocalAccountSid(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value) || !value.StartsWith("S-1-5-21-", StringComparison.Ordinal))
+            return false;
+        try { return new SecurityIdentifier(value).IsAccountSid(); }
+        catch (ArgumentException) { return false; }
+        catch (SystemException) { return false; }
+    }
 
     private static bool IsSafeLocalExecutable(string path)
     {
