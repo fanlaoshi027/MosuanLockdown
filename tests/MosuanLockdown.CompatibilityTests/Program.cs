@@ -12,10 +12,36 @@ var candidate = new EnterpriseShellPreflight.Snapshot("Enterprise", 26100,
     System.Runtime.InteropServices.Architecture.X64, "Enabled", "Available", "Disabled",
     Array.Empty<string>());
 Assert(candidate.IsEligibleCandidate, "Enterprise x64 enabled feature and available provider");
-Assert(candidate with { Edition = "Professional" } is { IsEligibleCandidate: false }, "Pro excluded");
-Assert(candidate with { FeatureState = "Disabled" } is { IsEligibleCandidate: false }, "Feature disabled");
-Assert(candidate with { WmiProviderState = "Unavailable" } is { IsEligibleCandidate: false }, "Provider missing");
-Assert(candidate with { Build = 19045 } is { IsEligibleCandidate: false }, "Windows 10 excluded");
-Assert(candidate with { ShellLauncherState = "Unknown" } is { IsEligibleCandidate: false }, "Unknown state excluded");
-Assert(candidate with { Architecture = System.Runtime.InteropServices.Architecture.Arm64 } is { IsEligibleCandidate: false }, "ARM64 excluded");
-Console.WriteLine("PASS: 11 compatibility / Enterprise classifier tests");
+Assert(!(candidate with { Edition = "Professional" }).IsEligibleCandidate, "Pro excluded");
+Assert(!(candidate with { FeatureState = "Disabled" }).IsEligibleCandidate, "Feature disabled");
+Assert(!(candidate with { WmiProviderState = "Unavailable" }).IsEligibleCandidate, "Provider missing");
+Assert(!(candidate with { Build = 19045 }).IsEligibleCandidate, "Windows 10 excluded");
+Assert(!(candidate with { ShellLauncherState = "Unknown" }).IsEligibleCandidate, "Unknown state excluded");
+Assert(!(candidate with { Architecture = System.Runtime.InteropServices.Architecture.Arm64 }).IsEligibleCandidate, "ARM64 excluded");
+
+var testFolder = Path.Combine(Path.GetTempPath(), "mosuan-lockdown-snapshot-" + Guid.NewGuid().ToString("N"));
+Directory.CreateDirectory(testFolder);
+try
+{
+    var json = System.Text.Json.JsonSerializer.Serialize(new
+    {
+        Product = "MosuanLockdown",
+        SchemaVersion = 2,
+        ShellLauncherState = "Disabled",
+        DefaultShell = new { Shell = "explorer.exe", DefaultAction = 0 },
+        CustomShells = Array.Empty<object>()
+    });
+    var inventoryPath = Path.Combine(testFolder, "inventory.json");
+    File.WriteAllText(inventoryPath, json);
+    var sha = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(inventoryPath))).ToLowerInvariant();
+    File.WriteAllText(Path.Combine(testFolder, "inventory.sha256"), sha + "  inventory.json");
+    Assert(ShellSnapshotVerifier.Verify(testFolder, sha).Consistent, "Snapshot and external hash valid");
+    Assert(!ShellSnapshotVerifier.Verify(testFolder, new string('0', 64)).Consistent, "External hash mismatch");
+    File.AppendAllText(inventoryPath, " ");
+    Assert(!ShellSnapshotVerifier.Verify(testFolder).Consistent, "Tampered snapshot detected");
+}
+finally
+{
+    Directory.Delete(testFolder, recursive: true);
+}
+Console.WriteLine("PASS: 14 compatibility / Enterprise / snapshot tests");
