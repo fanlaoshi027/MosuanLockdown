@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.IO;\nusing System.Linq;
+using System.IO;
+using System.Linq;
 using System.Security.Principal;
 
 namespace MosuanLockdown;
@@ -64,11 +65,14 @@ internal static class StudentKioskPlan
         if (string.IsNullOrWhiteSpace(value) || value.Contains('"') || value.Contains('\n') ||
             value.Contains('\r') || value.StartsWith(@"\\", StringComparison.Ordinal))
             return false;
-        if (value.IndexOfAny(Path.GetInvalidPathChars()) >= 0 || value.Contains('|') ||\n            value.Contains('<') || value.Contains('>') || value.Contains('*') ||\n            value.Contains('?') || !Path.IsPathFullyQualified(value) ||
+        if (value.IndexOfAny(Path.GetInvalidPathChars()) >= 0 || value.Contains('|') ||
+            value.Contains('<') || value.Contains('>') || value.Contains('*') ||
+            value.Contains('?') || !Path.IsPathFullyQualified(value) ||
             !string.Equals(Path.GetExtension(value), ".exe", StringComparison.OrdinalIgnoreCase))
             return false;
         // Reject relative, shell pseudo-paths, and command-line suffixes.
         return value.Length >= 4 && char.IsLetter(value[0]) && value[1] == ':' &&
-            (value[2] == '\\' || value[2] == '/');
+            value[2] == '\\' && !value.Contains('/') &&
+            !value.Split('\\').Any(segment => segment is "." or "..");
     }
 }
