@@ -30,3 +30,11 @@
 - 已提交 Enterprise 只读检测、WMI 状态读取、Shell Launcher 配置清单与 SHA-256 验证、WPF 入口和回归测试。
 - 尚未确认 Windows CI 通过；尚未实现可撤销 Shell Launcher 配置和应用执行白名单。
 - 下一批只开发：安全的学生 Shell 配置与管理员恢复路径，随后固定白名单审计。
+
+## 2026-11-23 本轮进度
+- 新增 StudentShellProposal：仅导出不可直接执行的学生 Shell 预览 JSON，管理员原 Shell 明确保留。
+- 新增 ShellRecoveryPreview：对已校验快照生成离线人工恢复步骤；不会写 WMI、注册表或策略。
+- WPF 增加草案导出与恢复预览入口。
+- 回归测试覆盖学生模式草案和恢复快照完整性。
+- 下一步不再增加管理页面：先完成一次 Windows CI 构建，修复构建错误；随后才编写受控 Shell Launcher 应用/撤销代码。
+- WDAC/App Control 不允许在未审计前强制。Shell Launcher 不是应用白名单。
