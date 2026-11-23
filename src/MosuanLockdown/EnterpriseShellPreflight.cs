@@ -65,7 +65,7 @@ internal static class EnterpriseShellPreflight
         string state = "Unknown";
         try
         {
-            // System.Management is used only to query WMI. No InvokeMethod calls.
+            // System.Management is used only for class reads and documented read-only WMI methods.
             var scope = new System.Management.ManagementScope(@"\\.\root\standardcimv2\embedded");
             scope.Connect();
             using var clazz = new System.Management.ManagementClass(scope,
