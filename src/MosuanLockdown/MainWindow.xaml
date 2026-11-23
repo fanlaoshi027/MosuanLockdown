@@ -121,6 +121,7 @@
       <Button Content="导出 Shell Launcher 只读清单" HorizontalAlignment="Left" Click="ExportShellInventory_Click"/>
       <TextBox x:Name="ExpectedShellHash" Margin="0,8,0,5" MaxLength="64" Padding="10" ToolTip="可选：导出时单独记录的 SHA-256（64位）"/>
       <Button Content="验证 Shell Launcher 快照" HorizontalAlignment="Left" Click="VerifyShellInventory_Click"/>
+      <Button Content="查看管理员恢复步骤（只读）" HorizontalAlignment="Left" Click="PreviewRecovery_Click"/>
       <Border Height="1" Background="#DEE7F2" Margin="0,18,0,18"/>
       <TextBlock Text="验证已有备份（只读）" Style="{StaticResource SectionHeading}"/>
       <TextBlock Text="可以粘贴导出时记录的 SHA-256，验证文件是否保持一致。留空时仅检查 XML 格式并计算当前哈希。" TextWrapping="Wrap" Foreground="#41546B"/>
