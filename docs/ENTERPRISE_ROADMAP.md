@@ -1,60 +1,32 @@
-# MosuanLockdown: Windows 11 Enterprise roadmap
+# MosuanLockdown — 最小够用版本（最终范围）
 
-Branch: feature/enterprise-shell-wdac. Main remains the stable v0.23 safe preview.
+## 唯一目标
+学生登录 Windows 11 Enterprise 后自动进入 MosuanPlayer2027，只能观看网课，不能运行其他非允许程序。管理员登录后仍能正常使用 Windows，并可解除限制。
 
-## Scope and ownership
-- MosuanLockdown is the only Windows kiosk and permission management program; preserve WPF/.NET 10 UI and previous diagnostics.
-- Target: Windows 11 Enterprise x64; Windows Pro / Assigned Access stays as legacy preview only.
-- MosuanPlayer2027 remains a separate player repository. Do not duplicate this manager inside the player.
-- A future joint installer can package both applications but MUST NOT silently enable kiosk policies.
+## 只保留
+1. 检查 Windows 11 Enterprise、Shell Launcher、学生标准账户及独立管理员账户。
+2. 选择学生账户和播放器 EXE，显示清晰的配置预览。
+3. 备份原有 Shell Launcher 配置并验证 SHA-256；有失败则禁止继续。
+4. 为学生 SID 配置 Shell Launcher；管理员账户保留 explorer.exe。播放器退出时按已测试的规则重新启动播放器。
+5. 使用预先测试、固定且可恢复的应用控制白名单，限制学生启动其他程序。Shell Launcher 本身不能阻止任意进程执行。
+6. 先审计应用控制策略，核对正常视频播放、SMB、更新和系统组件，再决定是否强制执行。
+7. 管理员一键关闭学生限制、恢复 Shell Launcher 配置；保留独立离线恢复流程。
+8. 在专用 Windows 11 Enterprise 测试机验证重启、退出播放器、快捷键、文件选择器、任务管理器及恢复流程。
 
-## Non-negotiable safety
-- Never target the current administrator, recovery administrator, or an administrator group for a student shell.
-- Before enabling Shell Launcher, prove an independent administrator account can sign in and restore Explorer.
-- Shell Launcher changes only the shell; it cannot prevent arbitrary process execution by itself. App Control for Business (WDAC) is a separate enforcement layer.
-- Take inventory and protected backups before changes. Document a tested rollback before enabling.
-- Never apply WDAC enforcement without audit and explicit operator approval. Keep the current DeploymentSafetyGate hard-blocked.
-- Unknown permissions, unavailable providers, managed-device policy, or unclear recovery route must be treated as BLOCKED.
-- Do not save credentials or BitLocker recovery keys to logs or exported reports.
+## 不做
+- 企业集中管理、远程控制、设备集群、策略设计器、复杂报表、通用权限管理框架。
+- 不为每个功能建立独立设置页面；沿用现有 WPF 界面并精简为「检查、启用、恢复」三步。
+- 不重复开发播放器内部的文件管理或播放功能。
+- 不因每次代码改动都触发构建；一个完整阶段构建一次。
 
-## Milestones
-### E1 — Read-only Shell Launcher / Enterprise inspection
-- Read edition, build, architecture.
-- Query optional feature Client-EmbeddedShellLauncher using DISM without enabling it.
-- Query WMI namespace root\\standardcimv2\\embedded and WESL_UserSetting without Set* invocation.
-- Inspect IsEnabled and GetDefaultShell where supported; report unavailable vs unknown.
-- Verify student SID, local standard user, executable path, parent ACLs, and separate admin.
-- Acceptance: cannot modify shell, user accounts, or app control settings; test decision logic with mocks.
+## 绝对安全边界
+- 不允许修改管理员账户 Shell 或让管理员受到学生白名单限制。
+- 不允许自动锁定或静默启用 WDAC。
+- 未经真实恢复演练，不提供正式启用入口。
+- 任何备份失败、账户不明、策略冲突、恢复条件不足均禁止部署。
+- 现阶段 DeploymentSafetyGate 仍固定为禁止部署；完成测试后才设计受控启用流程。
 
-### E2 — Backup / inventory
-- Snapshot all readable WESL_UserSetting configurations (including per-SID instances), provider state and feature state.
-- Keep existing AppLocker XML backup and hashes; list active App Control policies without changing them.
-- Export JSON inventory plus SHA-256 manifest, timestamp and explicit limitations.
-- Acceptance: repeatable read-only snapshot, never overwrites previous backups, no secrets.
-
-### E3 — Shell Launcher reversible configuration
-- Validate account SID, backup hashes, admin recovery, ownership by GPO/MDM and trusted EXE path.
-- Generate strict preview and controlled configuration for a dedicated student SID.
-- Keep Explorer as default shell for other users/admins. Specify shell restart/exit behavior.
-- Add explicit enable, verify, disable and restore operations behind a new reviewed gate.
-- Acceptance: only a dedicated test device can enable, with tested admin recovery and audit log.
-
-### E4 — WDAC audit
-- Create carefully scoped candidate policy; audit CodeIntegrity/Operational events and legitimate player behavior, codecs, updates, drivers and SMB.
-- Document policy servicing/rollback and administrator allowances.
-
-### E5 — WDAC enforcement / escape testing
-- Only after audit approval and sacrificial hardware tests.
-- Test reboot, Win+R, Win+E, Task Manager, Ctrl+Alt+Del, file pickers, URL handlers, external programs, removable media, admin recovery, offline recovery, and system updates.
-
-## Immediate sequence
-1. Implement independent E1 report service and tests.
-2. Implement E2 snapshot + hash.
-3. Wire new buttons into existing WPF UI only after isolated tests.
-4. Do not compile or release for every tiny edit; one CI build per substantial completed milestone.
-
-## Microsoft references
-- https://learn.microsoft.com/en-us/windows/configuration/shell-launcher/
-- https://learn.microsoft.com/en-us/windows/configuration/shell-launcher/configure-wmi
-- https://learn.microsoft.com/en-us/windows/configuration/shell-launcher/wesl-usersetting
-- https://learn.microsoft.com/en-us/windows/security/application-security/application-control/app-control-for-business/deployment/audit-appcontrol-policies
+## 当前状态
+- 已提交 Enterprise 只读检测、WMI 状态读取、Shell Launcher 配置清单与 SHA-256 验证、WPF 入口和回归测试。
+- 尚未确认 Windows CI 通过；尚未实现可撤销 Shell Launcher 配置和应用执行白名单。
+- 下一批只开发：安全的学生 Shell 配置与管理员恢复路径，随后固定白名单审计。
