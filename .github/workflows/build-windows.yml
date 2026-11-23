@@ -1,7 +1,7 @@
 name: Build Windows Preview
 on:
   push:
-    branches: [main]
+    branches: [main, feature/enterprise-shell-wdac]
   workflow_dispatch:
 concurrency:
   group: windows-build-${{ github.workflow }}-${{ github.ref }}
@@ -29,7 +29,7 @@ jobs:
       - name: Upload executable
         uses: actions/upload-artifact@v4
         with:
-          name: MosuanLockdown-v0.23-win-x64
+          name: MosuanLockdown-Enterprise-E1E2-preview-win-x64
           path: dist/
           if-no-files-found: error
           retention-days: 30
