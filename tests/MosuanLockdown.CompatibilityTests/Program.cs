@@ -63,4 +63,17 @@ Assert(StudentKioskPlan.Assess(kiosk with { ApplicationControlEnforced = false }
     "Shell Launcher alone insufficient");
 Assert(StudentKioskPlan.Assess(kiosk with { AdministratorRecoveryConfirmed = false }).Blockers.Count > 0,
     "Admin recovery mandatory");
-Console.WriteLine("PASS: compatibility / Enterprise / snapshot / kiosk safety tests");
+var proposal = StudentShellProposal.Create(kiosk.StudentSid, kiosk.PlayerExecutable);
+Assert(proposal.Mode == "StudentOnly" &&
+    proposal.DefaultShellPolicy == "PreserveExistingDefaultAndAdministratorShell" &&
+    proposal.DeploymentStatus == "PreviewOnly_NoSystemChanges",
+    "Student proposal cannot alter administrator shell or deploy");
+Assert(StudentShellProposal.ToJson(proposal).Contains("RestartPlayerAfterExit"),
+    "Student player restart is represented only as a proposal");
+try
+{
+    StudentShellProposal.Create(kiosk.StudentSid, @"\\\\server\\player.exe");
+    throw new Exception("UNC path was accepted");
+}
+catch (ArgumentException) { }
+Console.WriteLine("PASS: compatibility / Enterprise / snapshot / kiosk safety / proposal tests");
