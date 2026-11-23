@@ -8,4 +8,14 @@ var unknown = WindowsEditionCheck.Describe(26100, "UnrecognizedEdition", "24H2")
 Assert(unknown.Contains("未被当前检查器识别"), "Unknown edition warning");
 var old = WindowsEditionCheck.Describe(17763, "Professional", "1809");
 Assert(old.Contains("构建号过低"), "Old build warning");
-Console.WriteLine("PASS: 4 compatibility classifier tests");
+var candidate = new EnterpriseShellPreflight.Snapshot("Enterprise", 26100,
+    System.Runtime.InteropServices.Architecture.X64, "Enabled", "Available", "Disabled",
+    Array.Empty<string>());
+Assert(candidate.IsEligibleCandidate, "Enterprise x64 enabled feature and available provider");
+Assert(candidate with { Edition = "Professional" } is { IsEligibleCandidate: false }, "Pro excluded");
+Assert(candidate with { FeatureState = "Disabled" } is { IsEligibleCandidate: false }, "Feature disabled");
+Assert(candidate with { WmiProviderState = "Unavailable" } is { IsEligibleCandidate: false }, "Provider missing");
+Assert(candidate with { Build = 19045 } is { IsEligibleCandidate: false }, "Windows 10 excluded");
+Assert(candidate with { ShellLauncherState = "Unknown" } is { IsEligibleCandidate: false }, "Unknown state excluded");
+Assert(candidate with { Architecture = System.Runtime.InteropServices.Architecture.Arm64 } is { IsEligibleCandidate: false }, "ARM64 excluded");
+Console.WriteLine("PASS: 11 compatibility / Enterprise classifier tests");
