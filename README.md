@@ -115,3 +115,17 @@ AppLocker 只读导出增加 XML 根节点和子节点白名单检查；保存�
 ## v0.23 保守部署门禁
 
 首页新增红色部署门禁状态，诊断后显示阻断项、警告和缺少的关键部署前提。门禁独立封装，始终返回禁止部署，不能被人工勾选绕过；仍没有系统策略写入功能。更新诊断报告版本标识。
+
+
+## Windows 11 Enterprise 分支（开发中）
+
+开发分支：`feature/enterprise-shell-wdac`。此分支只开发墨算终端管家，不修改 MosuanPlayer2027。
+
+- Windows 11 Enterprise x64、Shell Launcher 可选功能、WMI 提供程序、IsEnabled 只读检测：代码已提交；待 Windows CI 和实机验证。
+- WESL_UserSetting 默认 Shell、各 SID 自定义 Shell、退出动作及返回码的只读快照，带 SHA-256 导出与核验：代码已提交；待 Windows 验证。
+- 已保留 v0.23 WPF 界面、诊断、AppLocker 本地导出和永久阻断部署的门禁。
+- 尚未实现：Shell Launcher 应用/回滚、完整系统策略备份与还原、WDAC 审计/强制、学生模式实机逃逸测试。
+- 当前所有 Shell Launcher 新入口均为只读，无 `SetCustomShell` / `SetEnabled` 执行操作。
+- 详细计划：[docs/ENTERPRISE_ROADMAP.md](docs/ENTERPRISE_ROADMAP.md)，职责范围：[docs/PLAYER_INTEGRATION.md](docs/PLAYER_INTEGRATION.md)。
+
+切勿将 CI 编译通过等同于已经验证 Windows 系统锁定或恢复功能。
