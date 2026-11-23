@@ -205,6 +205,40 @@ public partial class MainWindow : Window
             Environment.NewLine + "⚠ 此验证不会执行策略恢复。";
     }
 
+    private void PreviewStudentKiosk_Click(object sender, RoutedEventArgs e)
+    {
+        var studentSid = (StudentAccounts.SelectedItem as AccountOption)?.Sid ?? "";
+        var adminSid = WindowsIdentity.GetCurrent().User?.Value ?? "";
+        bool currentAdmin = new WindowsPrincipal(WindowsIdentity.GetCurrent())
+            .IsInRole(WindowsBuiltInRole.Administrator);
+        var preflight = EnterpriseShellPreflight.Inspect();
+        var input = new StudentKioskPlan.Input(
+            studentSid, currentAdmin ? adminSid : "",
+            ExePath.Text, File.Exists(ExePath.Text),
+            SnapshotVerified: false,
+            RecoveryTested: false,
+            ApplicationControlAudited: false,
+            ApplicationControlEnforced: false,
+            AdministratorRecoveryConfirmed: false);
+        var assessment = StudentKioskPlan.Assess(input);
+        var details = new List<string>
+        {
+            "学生专用播放器 · 部署预览（不会修改 Windows）",
+            "学生账户：" + ((StudentAccounts.SelectedItem as AccountOption)?.Name ?? "未选择"),
+            "播放器：" + ExePath.Text,
+            "管理员桌面：必须保持 explorer.exe，不能套用学生限制。",
+            "Shell Launcher：" + (preflight.IsEligibleCandidate ? "环境候选通过" : "环境未通过"),
+            "注意：Shell Launcher 仅替换桌面，不能禁止其他程序；仍需应用控制策略。",
+        };
+        if (!preflight.IsEligibleCandidate)
+            details.Add("✗ Windows 11 Enterprise / Shell Launcher 环境不满足条件。");
+        if (!currentAdmin)
+            details.Add("✗ 请使用独立管理员账户执行预检。");
+        details.AddRange(assessment.Blockers.Select(item => "✗ " + item));
+        details.Add("结论：" + assessment.Summary);
+        Status.Text = string.Join(Environment.NewLine, details);
+    }
+
     private void Diagnose_Click(object sender, RoutedEventArgs e)
     {
         var notes = new List<string>();
