@@ -115,6 +115,10 @@
       <TextBlock Text="导出当前本地 AppLocker 策略 XML，保存后重新读取并显示 SHA-256 校验值。" TextWrapping="Wrap" Foreground="#41546B" Margin="0,0,0,14"/>
       <Button Content="导出现有 AppLocker 本地策略 XML" HorizontalAlignment="Left" Click="ExportAppLocker_Click"/>
       <Border Height="1" Background="#DEE7F2" Margin="0,18,0,18"/>
+      <TextBlock Text="Shell Launcher 当前配置清单（只读）" Style="{StaticResource SectionHeading}"/>
+      <TextBlock Text="只读导出账户 SID、当前 Shell 配置和 SHA-256。尚非完整恢复备份，不可用于锁机部署。" TextWrapping="Wrap" Foreground="#986315" Margin="0,0,0,10"/>
+      <Button Content="导出 Shell Launcher 只读清单" HorizontalAlignment="Left" Click="ExportShellInventory_Click"/>
+      <Border Height="1" Background="#DEE7F2" Margin="0,18,0,18"/>
       <TextBlock Text="验证已有备份（只读）" Style="{StaticResource SectionHeading}"/>
       <TextBlock Text="可以粘贴导出时记录的 SHA-256，验证文件是否保持一致。留空时仅检查 XML 格式并计算当前哈希。" TextWrapping="Wrap" Foreground="#41546B"/>
       <TextBox x:Name="ExpectedBackupHash" Margin="0,10,0,8" Padding="10" MaxLength="64" ToolTip="可选：64 位十六进制 SHA-256" />
