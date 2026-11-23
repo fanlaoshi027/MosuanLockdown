@@ -30,7 +30,8 @@ internal static class EnterpriseShellPreflight
             Build >= 22000 &&
             Architecture == Architecture.X64 &&
             FeatureState.Equals("Enabled", StringComparison.OrdinalIgnoreCase) &&
-            WmiProviderState == "Available";
+            WmiProviderState == "Available" &&
+            ShellLauncherState != "Unknown";
 
         public string Describe()
         {
