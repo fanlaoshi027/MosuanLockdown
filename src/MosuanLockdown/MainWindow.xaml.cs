@@ -191,6 +191,20 @@ public partial class MainWindow : Window
         }
     }
 
+    private void VerifyShellInventory_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new OpenFolderDialog
+        {
+            Title = "选择包含 inventory.json 和 inventory.sha256 的快照目录",
+            Multiselect = false
+        };
+        if (dialog.ShowDialog(this) != true) return;
+        var result = ShellSnapshotVerifier.Verify(dialog.FolderName, ExpectedShellHash.Text.Trim());
+        Status.Text = result.Explanation +
+            (string.IsNullOrWhiteSpace(result.Sha256) ? "" : Environment.NewLine + "SHA-256: " + result.Sha256) +
+            Environment.NewLine + "⚠ 此验证不会执行策略恢复。";
+    }
+
     private void Diagnose_Click(object sender, RoutedEventArgs e)
     {
         var notes = new List<string>();
